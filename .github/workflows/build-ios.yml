@@ -1,6 +1,8 @@
 name: Build iOS IPA
 
 on:
+  push:
+    branches: [ main ]
   workflow_dispatch:
 
 permissions:
@@ -34,13 +36,12 @@ jobs:
               <author email="hoangtuan@users.noreply.github.com">Hoang Tuan</author>
               <content src="index.html" />
               <access origin="*" />
-              <allow-intent href="http://*/*" />
-              <allow-intent href="https://*/*" />
-              <allow-navigation href="app://localhost/*" />
-              <allow-navigation href="http://*/*" />
-              <allow-navigation href="https://*/*" />
+              <allow-intent href="*" />
+              <allow-navigation href="*" />
               <preference name="Orientation" value="landscape" />
               <preference name="Fullscreen" value="true" />
+              <preference name="DisallowOverscroll" value="true" />
+              <preference name="ScrollEnabled" value="false" />
               <platform name="ios">
                   <preference name="scheme" value="app" />
                   <preference name="hostname" value="localhost" />

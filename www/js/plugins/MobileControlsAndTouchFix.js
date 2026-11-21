@@ -406,16 +406,11 @@
     // =========================================================================
 
     function isMobilePlatform() {
+        // Chỉ ẩn trên bản NW.js (Game.exe) của Windows máy tính
         if (typeof Utils !== 'undefined' && Utils.isNwjs && Utils.isNwjs()) {
             return false;
         }
-        if (window.cordova || window.Capacitor) {
-            return true;
-        }
-        if (/Android|iPhone|iPad|iPod|Mobile|Silk|BlackBerry|Opera Mini/i.test(navigator.userAgent)) {
-            return true;
-        }
-        return false;
+        return true;
     }
 
     function createVirtualPad() {
@@ -667,9 +662,10 @@
             Input._currentState['up']    = false;
         }
 
+        // Tương tác Joystick thuần túy trên container (không can thiệp vào window của iOS)
         joystickContainer.addEventListener("touchstart", function(e) {
-            e.preventDefault();
-            e.stopPropagation();
+            if (e && e.cancelable) e.preventDefault();
+            if (e && e.stopPropagation) e.stopPropagation();
             if (activeTouchId === null && e.changedTouches && e.changedTouches.length > 0) {
                 var touch = e.changedTouches[0];
                 activeTouchId = touch.identifier;
@@ -678,12 +674,12 @@
             }
         }, { passive: false });
 
-        window.addEventListener("touchmove", function(e) {
+        joystickContainer.addEventListener("touchmove", function(e) {
+            if (e && e.cancelable) e.preventDefault();
             if (activeTouchId !== null && e.changedTouches) {
                 for (var i = 0; i < e.changedTouches.length; i++) {
                     var touch = e.changedTouches[i];
                     if (touch.identifier === activeTouchId) {
-                        e.preventDefault();
                         updateJoystick(touch.clientX, touch.clientY);
                         break;
                     }
@@ -691,7 +687,7 @@
             }
         }, { passive: false });
 
-        window.addEventListener("touchend", function(e) {
+        joystickContainer.addEventListener("touchend", function(e) {
             if (activeTouchId !== null && e.changedTouches) {
                 for (var i = 0; i < e.changedTouches.length; i++) {
                     if (e.changedTouches[i].identifier === activeTouchId) {
@@ -702,31 +698,30 @@
             }
         }, { passive: false });
 
-        window.addEventListener("touchcancel", function(e) {
-            if (activeTouchId !== null && e.changedTouches) {
-                for (var i = 0; i < e.changedTouches.length; i++) {
-                    if (e.changedTouches[i].identifier === activeTouchId) {
-                        resetJoystick();
-                        break;
-                    }
-                }
-            }
+        joystickContainer.addEventListener("touchcancel", function(e) {
+            resetJoystick();
         }, { passive: false });
 
         joystickContainer.addEventListener("mousedown", function(e) {
-            e.preventDefault();
+            if (e && e.cancelable) e.preventDefault();
             isMouseDown = true;
             joystickKnob.classList.add("active");
             updateJoystick(e.clientX, e.clientY);
         });
 
-        window.addEventListener("mousemove", function(e) {
+        joystickContainer.addEventListener("mousemove", function(e) {
             if (isMouseDown) {
                 updateJoystick(e.clientX, e.clientY);
             }
         });
 
-        window.addEventListener("mouseup", function(e) {
+        joystickContainer.addEventListener("mouseup", function(e) {
+            if (isMouseDown) {
+                resetJoystick();
+            }
+        });
+
+        joystickContainer.addEventListener("mouseleave", function(e) {
             if (isMouseDown) {
                 resetJoystick();
             }
@@ -782,8 +777,10 @@
         updateDashUI();
 
         function toggleDash(e) {
-            if (e) {
+            if (e && e.cancelable) {
                 e.preventDefault();
+            }
+            if (e && e.stopPropagation) {
                 e.stopPropagation();
             }
             isDashActive = !isDashActive;
@@ -833,8 +830,10 @@
         var isDown = false;
 
         function press(e) {
-            if (e) {
+            if (e && e.cancelable) {
                 e.preventDefault();
+            }
+            if (e && e.stopPropagation) {
                 e.stopPropagation();
             }
             if (isDown) return;
@@ -844,8 +843,10 @@
         }
 
         function release(e) {
-            if (e) {
+            if (e && e.cancelable) {
                 e.preventDefault();
+            }
+            if (e && e.stopPropagation) {
                 e.stopPropagation();
             }
             if (!isDown) return;

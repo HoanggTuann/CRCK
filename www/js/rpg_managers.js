@@ -90,36 +90,52 @@ DataManager.loadDataFile = function(name, src) {
         }
     }
 
-    function tryXhr() {
+    function tryXhr(targetUrl) {
         if (loaded) return;
+        var requestUrl = targetUrl || url;
         var xhr = new XMLHttpRequest();
-        xhr.open('GET', url);
+        xhr.open('GET', requestUrl);
         xhr.overrideMimeType('application/json');
         xhr.onload = function() {
-            if (xhr.status < 400 || (xhr.status === 0 && xhr.responseText)) {
+            if ((xhr.status >= 200 && xhr.status < 300) || (xhr.status === 0 && xhr.responseText)) {
                 try {
                     applyData(JSON.parse(xhr.responseText));
                 } catch(e) {
                     errorHandler();
                 }
+            } else if (xhr.status < 400 && xhr.responseText) {
+                try {
+                    applyData(JSON.parse(xhr.responseText));
+                } catch(e) {
+                    errorHandler();
+                }
+            } else if (!targetUrl && url.indexOf('./') !== 0) {
+                tryXhr('./' + url);
             } else {
                 errorHandler();
             }
         };
-        xhr.onerror = errorHandler;
+        xhr.onerror = function() {
+            if (!targetUrl && url.indexOf('./') !== 0) {
+                tryXhr('./' + url);
+            } else {
+                errorHandler();
+            }
+        };
         xhr.send();
     }
 
     if (typeof fetch === 'function') {
         fetch(url)
             .then(function(res) {
-                if (!res.ok && res.status !== 0 && res.status !== 200) {
-                    throw new Error("HTTP " + res.status);
-                }
-                return res.json();
+                return res.text();
             })
-            .then(function(json) {
-                applyData(json);
+            .then(function(text) {
+                if (text && text.trim()) {
+                    applyData(JSON.parse(text));
+                } else {
+                    tryXhr();
+                }
             })
             .catch(function(e) {
                 tryXhr();
