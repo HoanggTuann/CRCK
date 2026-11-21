@@ -1,0 +1,4 @@
+# Temporary and log files
+*.bak
+*.tmp
+error_log.txt

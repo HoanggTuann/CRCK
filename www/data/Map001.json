@@ -1,0 +1,1444 @@
+{
+    "autoplayBgm":  false,
+    "autoplayBgs":  false,
+    "battleback1Name":  "",
+    "battleback2Name":  "",
+    "bgm":  {
+                "name":  "",
+                "pan":  0,
+                "pitch":  100,
+                "volume":  90
+            },
+    "bgs":  {
+                "name":  "",
+                "pan":  0,
+                "pitch":  100,
+                "volume":  90
+            },
+    "disableDashing":  false,
+    "displayName":  "",
+    "encounterList":  [
+
+                      ],
+    "encounterStep":  30,
+    "height":  5,
+    "note":  "",
+    "parallaxLoopX":  false,
+    "parallaxLoopY":  false,
+    "parallaxName":  "",
+    "parallaxShow":  true,
+    "parallaxSx":  0,
+    "parallaxSy":  0,
+    "scrollType":  0,
+    "specifyBattleback":  false,
+    "tilesetId":  2,
+    "width":  5,
+    "data":  [
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 1536,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0,
+                 0
+             ],
+    "events":  [
+                   null,
+                   {
+                       "id":  1,
+                       "name":  "EV001",
+                       "note":  "",
+                       "pages":  [
+                                     {
+                                         "conditions":  {
+                                                            "actorId":  1,
+                                                            "actorValid":  false,
+                                                            "itemId":  1,
+                                                            "itemValid":  false,
+                                                            "selfSwitchCh":  "A",
+                                                            "selfSwitchValid":  false,
+                                                            "switch1Id":  1,
+                                                            "switch1Valid":  false,
+                                                            "switch2Id":  1,
+                                                            "switch2Valid":  false,
+                                                            "variableId":  1,
+                                                            "variableValid":  false,
+                                                            "variableValue":  0
+                                                        },
+                                         "directionFix":  false,
+                                         "image":  {
+                                                       "characterIndex":  0,
+                                                       "characterName":  "",
+                                                       "direction":  2,
+                                                       "pattern":  0,
+                                                       "tileId":  0
+                                                   },
+                                         "list":  [
+                                                      {
+                                                          "code":  241,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             {
+                                                                                 "name":  "Battle1",
+                                                                                 "volume":  90,
+                                                                                 "pitch":  100,
+                                                                                 "pan":  0
+                                                                             }
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  231,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             1,
+                                                                             "OP1",
+                                                                             0,
+                                                                             0,
+                                                                             90,
+                                                                             -90,
+                                                                             100,
+                                                                             100,
+                                                                             255,
+                                                                             0
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             7,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "\\{\\{Á Á Á Á Á Á Á Á Á Á!!!!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             7,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "\\{NGỌC CỦA TÔI ĐÂU RỒI!!!!!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "TÔI ĐÃ NƯỚNG SẠCH TIỀN VÀO ĐÂY RỒI MÀ!!!!!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Đây là Memelis, một con nghiện game gacha quay thẻ, "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "người thà nhịn đói chứ quyết không nhịn quay gacha..."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Để rước được thẻ bài hiếm nhất trong tựa game Chel☆Connect,"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "cô nàng đã đốt sạch sành sanh từng đồng cắc cuối cùng..."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             6,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "K-Khoan đã...?"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Sao tự dưng lại mất kết nối mạng thế này!?"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  231,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             1,
+                                                                             "OP2",
+                                                                             0,
+                                                                             0,
+                                                                             90,
+                                                                             -90,
+                                                                             100,
+                                                                             100,
+                                                                             255,
+                                                                             0
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  250,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             {
+                                                                                 "name":  "Explosion2",
+                                                                                 "volume":  90,
+                                                                                 "pitch":  100,
+                                                                                 "pan":  0
+                                                                             }
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu1",
+                                                                             7,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Ố ồ!!!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Mình đã xài quá hạn mức trả góp rồi,"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "không còn tiền để đóng cước phí 4G nữa!!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             4,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "T-Tiền lãi mỗi tháng..."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "một, hai, ba, bốn, năm số không..."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Á (chợt nhận ra)!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "\\{\\{Mình không dùng được điện thoại nữa rồi~~~!!!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "……"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "…………"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "………………"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  231,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             1,
+                                                                             "OP3 ",
+                                                                             0,
+                                                                             0,
+                                                                             90,
+                                                                             -75,
+                                                                             100,
+                                                                             100,
+                                                                             255,
+                                                                             0
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina2",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Vậy là cậu lại nướng sạch tiền tiết kiệm... nữa rồi à?"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             ""
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Đây là nữ thánh của thị trấn, Tina."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Cô được bầu chọn làm nữ thánh chỉ vì"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "sở hữu đôi gò bồng đảo khủng khiếp như được thánh thần ban phước."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Ừ đúng thế đó~! Tớ còn chẳng có tiền mua đồ ăn, "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "đang phải gặm cỏ lót dạ đây này!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             4,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Vì bị cắt mạng nên tớ đành dùng điện thoại "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "để đập vỡ hạt dẻ với đồ cứng "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "như vũ khí cận chiến nè~~~"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Mà công nhận nó tiện tay phết đấy."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina2",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Cậu có thấy mình cục súc quá đáng không hả!?"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             7,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Hầy~ Giờ phải làm sao đây?"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Có việc làm thêm nào "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "trả 50 ngàn trong vòng 30 phút không ta~~"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina2",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Bớt mơ mộng lại giùm tớ cái..."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina1",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "A, Memelis!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Nhìn lên tivi kìa."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina1",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Đang chiếu chương trình Đặc San Hầm Ngục đấy."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu1",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Ủa? Để tớ xem thử coi."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Từ thời xa xưa,"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "mỗi hòn đảo đều ẩn chứa một hầm ngục kỳ bí..."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Tương truyền rằng "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "vô số kho báu vô giá vẫn đang nằm sâu bên trong."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Hãy cùng lắng nghe các mạo hiểm giả "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "đã tìm thấy kho báu "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "trong hầm ngục chia sẻ nhé."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Evil",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Nhờ kho báu trong hầm ngục, "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "tôi đã trả sạch toàn bộ nợ nần "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "và cưới được cô bạn gái hoàn hảo."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Đây chính là giấc mơ đổi đời nơi hầm ngục."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Actor3",
+                                                                             7,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Tôi từng thụt két công ty để bao trai bao gái ở quán bar, "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "nhưng nhờ kho báu mà tôi đã nhét tiền trả lại két sắt "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "trước khi bị ai phát hiện. "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "May mắn thoát nạn~"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Actor1",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Nhờ kho báu, tôi có tiền bồi thường ly hôn vì bị bắt quả tang ngoại tình. "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Hy vọng vẫn còn dư ít tiền "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "để tôi tiếp tục tán tỉnh các quý bà giàu có."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             ""
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Như quý vị đã thấy,"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "rất nhiều mạo hiểm giả đã đổi đời, "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "một bước lên mây chỉ sau một đêm..."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina2",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "T-Tớ thấy nội dung chương trình này hơi đen tối và bất ổn thì phải..."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "\\{\\{Đ-ĐÂY CHÍNH LÀ NÓ RỒI————!!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina2",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Oái!?"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "S-Sao thế, tự dưng hét toáng lên vậy..."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "\\{HẦM NGỤC!!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "CHÍNH LÀ HẦM NGỤC!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu1",
+                                                                             2,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Đi tìm kho báu, đem bán lấy tiền, trả sạch nợ nần, "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "rồi dùng số tiền còn lại ăn chơi cả đời không cần làm việc nữa!!!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina2",
+                                                                             4,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "\\{Hảaaa... (Hoang mang)"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  231,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             1,
+                                                                             "OP4",
+                                                                             0,
+                                                                             0,
+                                                                             90,
+                                                                             -90,
+                                                                             100,
+                                                                             100,
+                                                                             255,
+                                                                             0
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Đã quyết định rồi thì triển luôn thôi!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Đi thôi nào, Tina!!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Tớ sẽ bảo vệ cậu!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina1",
+                                                                             2,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "........................"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina2",
+                                                                             3,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Hầy... Được rồi."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Tớ biết rồi, tớ sẽ đi cùng cậu."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina1",
+                                                                             5,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "(Dù chắc cậu ấy chẳng nhớ những gì mình vừa nói đâu... "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Nhưng điều đó làm mình nhớ lại lời hứa "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "khi hai đứa mới gặp nhau.)"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "memerisu2",
+                                                                             1,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "\\{Nào, tiến lên vì kho báu "
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "trong hầm ngục!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Xuất phát thôi nào~!!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "thina1",
+                                                                             5,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "\\{Rõ rồi thưa đại ca~!"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  101,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "",
+                                                                             0,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "Và như thế,"
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  401,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             "chuyến phiêu lưu của Memelis và Tina chính thức bắt đầu..."
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  242,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             1
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  221,
+                                                          "indent":  0,
+                                                          "parameters":  [
+
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  235,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             1
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  201,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             0,
+                                                                             12,
+                                                                             3,
+                                                                             5,
+                                                                             0,
+                                                                             2
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  122,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             26,
+                                                                             26,
+                                                                             0,
+                                                                             0,
+                                                                             0
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  126,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             48,
+                                                                             0,
+                                                                             0,
+                                                                             1
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  222,
+                                                          "indent":  0,
+                                                          "parameters":  [
+
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  121,
+                                                          "indent":  0,
+                                                          "parameters":  [
+                                                                             16,
+                                                                             16,
+                                                                             0
+                                                                         ]
+                                                      },
+                                                      {
+                                                          "code":  0,
+                                                          "indent":  0,
+                                                          "parameters":  [
+
+                                                                         ]
+                                                      }
+                                                  ],
+                                         "moveFrequency":  3,
+                                         "moveRoute":  {
+                                                           "list":  [
+                                                                        {
+                                                                            "code":  0,
+                                                                            "parameters":  [
+
+                                                                                           ]
+                                                                        }
+                                                                    ],
+                                                           "repeat":  true,
+                                                           "skippable":  false,
+                                                           "wait":  false
+                                                       },
+                                         "moveSpeed":  3,
+                                         "moveType":  0,
+                                         "priorityType":  0,
+                                         "stepAnime":  false,
+                                         "through":  false,
+                                         "trigger":  3,
+                                         "walkAnime":  true
+                                     },
+                                     {
+                                         "conditions":  {
+                                                            "actorId":  1,
+                                                            "actorValid":  false,
+                                                            "itemId":  1,
+                                                            "itemValid":  false,
+                                                            "selfSwitchCh":  "A",
+                                                            "selfSwitchValid":  false,
+                                                            "switch1Id":  16,
+                                                            "switch1Valid":  true,
+                                                            "switch2Id":  1,
+                                                            "switch2Valid":  false,
+                                                            "variableId":  1,
+                                                            "variableValid":  false,
+                                                            "variableValue":  0
+                                                        },
+                                         "directionFix":  false,
+                                         "image":  {
+                                                       "characterIndex":  0,
+                                                       "characterName":  "",
+                                                       "direction":  2,
+                                                       "pattern":  0,
+                                                       "tileId":  0
+                                                   },
+                                         "list":  [
+                                                      {
+                                                          "code":  0,
+                                                          "indent":  0,
+                                                          "parameters":  [
+
+                                                                         ]
+                                                      }
+                                                  ],
+                                         "moveFrequency":  3,
+                                         "moveRoute":  {
+                                                           "list":  [
+                                                                        {
+                                                                            "code":  0,
+                                                                            "parameters":  [
+
+                                                                                           ]
+                                                                        }
+                                                                    ],
+                                                           "repeat":  true,
+                                                           "skippable":  false,
+                                                           "wait":  false
+                                                       },
+                                         "moveSpeed":  3,
+                                         "moveType":  0,
+                                         "priorityType":  0,
+                                         "stepAnime":  false,
+                                         "through":  false,
+                                         "trigger":  0,
+                                         "walkAnime":  true
+                                     }
+                                 ],
+                       "x":  2,
+                       "y":  2
+                   },
+                   null
+               ]
+}
