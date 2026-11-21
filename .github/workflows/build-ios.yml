@@ -9,7 +9,7 @@ permissions:
 jobs:
   build:
     name: Build iOS IPA (Unsigned)
-    runs-on: macos-14
+    runs-on: macos-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
