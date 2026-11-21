@@ -1,0 +1,86 @@
+name: Build Android APK
+
+on:
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Set up Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Build Android APK
+        run: |
+          cordova create memelis_app com.hoangtuan.memelis "Memelis RPG"
+          cd memelis_app
+          cat << 'EOF' > config.xml
+          <?xml version='1.0' encoding='utf-8'?>
+          <widget id="com.hoangtuan.memelis" version="1.0.0" xmlns="http://cordova.apache.org/ns/1.0" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+              <name>Memelis RPG</name>
+              <description>Memelis' RPG ~Nữ Thánh, Gacha và Hầm Ngục Nguy Hiểm~ Tiếng Việt</description>
+              <author email="hoangtuan@users.noreply.github.com">Hoang Tuan</author>
+              <content src="index.html" />
+              <access origin="*" />
+              <allow-intent href="http://*/*" />
+              <allow-intent href="https://*/*" />
+              <preference name="Orientation" value="landscape" />
+              <preference name="Fullscreen" value="true" />
+              <preference name="KeepRunning" value="true" />
+              <preference name="ShowTitle" value="false" />
+              <preference name="AndroidInsecureFileModeEnabled" value="true" />
+              <preference name="ScrollEnabled" value="false" />
+              <preference name="DisallowOverscroll" value="true" />
+              <platform name="android">
+                  <allow-intent href="market:*" />
+                  <preference name="AndroidXEnabled" value="true" />
+              </platform>
+          </widget>
+          EOF
+          
+          rm -rf www/*
+          cp -r ../www/* www/
+          
+          cordova platform add android@12.0.1
+          cordova build android --debug
+          
+          cp platforms/android/app/build/outputs/apk/debug/app-debug.apk ../Memelis-RPG-Vietsub.apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Memelis-RPG-Android-APK
+          path: Memelis-RPG-Vietsub.apk
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-apk
+          name: "Memelis RPG Tiếng Việt v1.0.0 (Android APK)"
+          body: "Tải file `Memelis-RPG-Vietsub.apk` bên dưới để cài trực tiếp lên điện thoại Android."
+          files: Memelis-RPG-Vietsub.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

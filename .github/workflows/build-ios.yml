@@ -1,0 +1,67 @@
+name: Build iOS IPA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build iOS IPA (Unsigned)
+    runs-on: macos-14
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install Cordova
+        run: npm install -g cordova
+
+      - name: Build iOS Project & IPA
+        run: |
+          cordova create memelis_ios com.hoangtuan.memelis "Memelis RPG"
+          cd memelis_ios
+          cat << 'EOF' > config.xml
+          <?xml version='1.0' encoding='utf-8'?>
+          <widget id="com.hoangtuan.memelis" version="1.0.0" xmlns="http://cordova.apache.org/ns/1.0" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+              <name>Memelis RPG</name>
+              <description>Memelis' RPG ~Nữ Thánh, Gacha và Hầm Ngục Nguy Hiểm~ Tiếng Việt</description>
+              <author email="hoangtuan@users.noreply.github.com">Hoang Tuan</author>
+              <content src="index.html" />
+              <access origin="*" />
+              <preference name="Orientation" value="landscape" />
+              <preference name="Fullscreen" value="true" />
+          </widget>
+          EOF
+          
+          rm -rf www/*
+          cp -r ../www/* www/
+          
+          cordova platform add ios
+          cd platforms/ios
+          xcodebuild -project "Memelis RPG.xcodeproj" -scheme "Memelis RPG" -configuration Debug -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+          
+          mkdir -p Payload
+          cp -r build/Debug-iphoneos/"Memelis RPG.app" Payload/
+          zip -r ../../../Memelis-RPG-Vietsub.ipa Payload
+
+      - name: Upload IPA Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: Memelis-RPG-iOS-IPA
+          path: Memelis-RPG-Vietsub.ipa
+
+      - name: Create or Update GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v1.0.0-ipa
+          name: "Memelis RPG Tiếng Việt v1.0.0 (iOS IPA)"
+          body: "Tải file `Memelis-RPG-Vietsub.ipa` bên dưới để cài lên iPhone/iPad thông qua AltStore, Sideloadly hoặc TrollStore."
+          files: Memelis-RPG-Vietsub.ipa
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
