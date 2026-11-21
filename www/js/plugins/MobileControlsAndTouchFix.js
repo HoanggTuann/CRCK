@@ -13,9 +13,14 @@
  *    - Chạm/Click trực tiếp vào 8 nút (Item, Skill, Equips, Status, H Status, Settings, Save, Close).
  *    - Hiệu ứng đổi hình sáng khi chọn/hover.
  *    - Chạm ra ngoài menu hoặc nút HỦY để đóng menu ngay lập tức.
- * 4. Bàn phím ảo trên màn hình (Virtual Gamepad):
+ * 4. Chuyển đổi nhân vật tiện lợi trong Equips / Skill / Status / H Status:
+ *    - Thêm 2 phím ảo [◀ Q] và [E ▶] ngay trên màn hình để chuyển qua lại nhân vật.
+ *    - Phím vật lý: Hỗ trợ phím Q (PageUp) và E/W (PageDown) trên bàn phím.
+ *    - Chạm trực tiếp vào khung chân dung/thông số nhân vật để đổi nhân vật ngay lập tức.
+ *    - Cho phép đổi nhân vật ngay cả khi đang duyệt danh sách slot trang bị hoặc danh sách kỹ năng.
+ * 5. Bàn phím ảo trên màn hình (Virtual Gamepad):
  *    - Cụm điều hướng (Lên, Xuống, Trái, Phải).
- *    - Cụm phím hành động (OK / Chọn, HỦY / Quay lại, MENU, CHẠY).
+ *    - Cụm phím hành động (OK / Chọn, HỦY / Quay lại, MENU, CHẠY, ◀ Q, E ▶).
  *    - Nút bật / tắt bàn phím ảo ở góc trên màn hình.
  */
 
@@ -23,6 +28,11 @@
     "use strict";
 
     var isPadVisible = true;
+
+    // Gán phím vật lý E (69) và Q (81) vào hệ thống PageDown / PageUp của RPG Maker
+    Input.keyMapper[69] = 'pagedown'; // Phím E = Đổi nhân vật kế tiếp (Next Actor)
+    Input.keyMapper[81] = 'pageup';   // Phím Q = Đổi nhân vật trước (Previous Actor)
+    Input.keyMapper[87] = 'pagedown'; // Phím W = Đổi nhân vật kế tiếp
 
     // =========================================================================
     // 1. SỬA TOẠ ĐỘ CHẠM & TƯƠNG TÁC CHẠM 1 CHẠM (1-TAP SELECTION)
@@ -75,7 +85,125 @@
     };
 
     // =========================================================================
-    // 2. TƯƠNG TÁC CHẠM & CHUỘT CHO MENU TRANH TÙY BIẾN (CUSTOM PICTURE MENU)
+    // 2. HỖ TRỢ CHUYỂN ĐỔI NHÂN VẬT TIỆN LỢI TRONG MENU (EQUIP, SKILL, STATUS, H STATUS)
+    // =========================================================================
+
+    // [Scene_Equip]
+    // Cho phép bấm Q/E đổi nhân vật ngay cả khi đang ở cửa sổ Slot và Item
+    var _Scene_Equip_createSlotWindow = Scene_Equip.prototype.createSlotWindow;
+    Scene_Equip.prototype.createSlotWindow = function() {
+        _Scene_Equip_createSlotWindow.call(this);
+        this._slotWindow.setHandler('pagedown', this.nextActor.bind(this));
+        this._slotWindow.setHandler('pageup',   this.previousActor.bind(this));
+    };
+
+    var _Scene_Equip_createItemWindow = Scene_Equip.prototype.createItemWindow;
+    Scene_Equip.prototype.createItemWindow = function() {
+        _Scene_Equip_createItemWindow.call(this);
+        this._itemWindow.setHandler('pagedown', this.nextActor.bind(this));
+        this._itemWindow.setHandler('pageup',   this.previousActor.bind(this));
+    };
+
+    var _Scene_Equip_onActorChange = Scene_Equip.prototype.onActorChange;
+    Scene_Equip.prototype.onActorChange = function() {
+        var wasSlotActive = this._slotWindow && this._slotWindow.active;
+        var slotIndex = this._slotWindow ? this._slotWindow.index() : 0;
+        _Scene_Equip_onActorChange.call(this);
+        if (wasSlotActive && this._slotWindow) {
+            this._commandWindow.deactivate();
+            this._slotWindow.activate();
+            this._slotWindow.select(slotIndex);
+        }
+    };
+
+    // Chạm trực tiếp vào khung Status/Face nhân vật bên trái để đổi nhân vật
+    var _Scene_Equip_update = Scene_Equip.prototype.update;
+    Scene_Equip.prototype.update = function() {
+        _Scene_Equip_update.call(this);
+        if (TouchInput.isTriggered() && this._statusWindow && this.isActive()) {
+            var x = Graphics.pageToCanvasX(TouchInput.x);
+            var y = Graphics.pageToCanvasY(TouchInput.y);
+            var sw = this._statusWindow;
+            if (x >= sw.x && x < sw.x + sw.width && y >= sw.y && y < sw.y + sw.height) {
+                SoundManager.playCursor();
+                this.nextActor();
+                TouchInput.clear();
+            }
+        }
+    };
+
+    // [Scene_Skill]
+    var _Scene_Skill_createItemWindow = Scene_Skill.prototype.createItemWindow;
+    Scene_Skill.prototype.createItemWindow = function() {
+        _Scene_Skill_createItemWindow.call(this);
+        this._itemWindow.setHandler('pagedown', this.nextActor.bind(this));
+        this._itemWindow.setHandler('pageup',   this.previousActor.bind(this));
+    };
+
+    var _Scene_Skill_onActorChange = Scene_Skill.prototype.onActorChange;
+    Scene_Skill.prototype.onActorChange = function() {
+        var wasItemActive = this._itemWindow && this._itemWindow.active;
+        _Scene_Skill_onActorChange.call(this);
+        if (wasItemActive && this._itemWindow) {
+            this._skillTypeWindow.deactivate();
+            this._itemWindow.activate();
+            this._itemWindow.select(0);
+        }
+    };
+
+    var _Scene_Skill_update = Scene_Skill.prototype.update;
+    Scene_Skill.prototype.update = function() {
+        _Scene_Skill_update.call(this);
+        if (TouchInput.isTriggered() && this._statusWindow && this.isActive()) {
+            var x = Graphics.pageToCanvasX(TouchInput.x);
+            var y = Graphics.pageToCanvasY(TouchInput.y);
+            var sw = this._statusWindow;
+            if (x >= sw.x && x < sw.x + sw.width && y >= sw.y && y < sw.y + sw.height) {
+                SoundManager.playCursor();
+                this.nextActor();
+                TouchInput.clear();
+            }
+        }
+    };
+
+    // [Scene_Status]
+    var _Scene_Status_update = Scene_Status.prototype.update;
+    Scene_Status.prototype.update = function() {
+        _Scene_Status_update.call(this);
+        if (TouchInput.isTriggered() && this._statusWindow && this.isActive()) {
+            var x = Graphics.pageToCanvasX(TouchInput.x);
+            if (x < Graphics.boxWidth / 2) {
+                SoundManager.playCursor();
+                this.previousActor();
+            } else {
+                SoundManager.playCursor();
+                this.nextActor();
+            }
+            TouchInput.clear();
+        }
+    };
+
+    // [Window_EroStatus / H Status Plugin]
+    if (typeof Window_EroStatus !== 'undefined') {
+        var _Window_EroStatus_update = Window_EroStatus.prototype.update;
+        Window_EroStatus.prototype.update = function() {
+            if (typeof CBR_eroStatusState !== 'undefined' && 1 < CBR_eroStatusState.num.length && this.isOpenAndActive()) {
+                if (Input.isTriggered('pagedown')) {
+                    SoundManager.playCursor(2);
+                    CBR_eroStatusState.now = ((CBR_eroStatusState.now + 1) < CBR_eroStatusState.num.length) ? CBR_eroStatusState.now + 1 : 0;
+                    this._CBR_complete = false;
+                } else if (Input.isTriggered('pageup')) {
+                    SoundManager.playCursor(2);
+                    CBR_eroStatusState.now = ((CBR_eroStatusState.now) < 1) ? CBR_eroStatusState.num.length - 1 : CBR_eroStatusState.now - 1;
+                    this._CBR_complete = false;
+                }
+            }
+            _Window_EroStatus_update.call(this);
+        };
+    }
+
+    // =========================================================================
+    // 3. TƯƠNG TÁC CHẠM & CHUỘT CHO MENU TRANH TÙY BIẾN (CUSTOM PICTURE MENU)
     // =========================================================================
 
     // Danh sách 8 nút trong Menu tranh tùy biến của game
@@ -140,20 +268,30 @@
 
     Scene_Map.prototype.updateCustomMenuInteraction = function() {
         if (!$gameSwitches || !$gameSwitches.value(82)) {
-            // Khi menu đã đóng, khôi phục lại cụm D-pad nếu trước đó đang bật
+            // Khi menu đã đóng, khôi phục lại cụm D-pad và nút Q nếu trước đó đang bật
             var dpad = document.querySelector(".vpad-dpad-center");
             if (dpad && dpad.dataset.menuHidden === "true") {
                 if (isPadVisible) dpad.style.display = "block";
                 dpad.dataset.menuHidden = "false";
             }
+            var btnQ = document.querySelector(".vpad-btn-q");
+            if (btnQ && btnQ.dataset.menuHidden === "true") {
+                if (isPadVisible) btnQ.style.display = "flex";
+                btnQ.dataset.menuHidden = "false";
+            }
             return;
         }
 
-        // Tạm ẩn cụm D-pad khi mở menu để không che nút Save và Close ở góc trái dưới
+        // Tạm ẩn cụm D-pad và nút Q khi mở menu để không che nút Save và Close ở góc trái dưới
         var dpadEl = document.querySelector(".vpad-dpad-center");
         if (dpadEl && dpadEl.style.display !== "none") {
             dpadEl.style.display = "none";
             dpadEl.dataset.menuHidden = "true";
+        }
+        var btnQEl = document.querySelector(".vpad-btn-q");
+        if (btnQEl && btnQEl.style.display !== "none") {
+            btnQEl.style.display = "none";
+            btnQEl.dataset.menuHidden = "true";
         }
 
         var tx = TouchInput.x;
@@ -223,7 +361,7 @@
     };
 
     // =========================================================================
-    // 3. TẠO BÀN PHÍM ẢO CẢM ỨNG TRÊN MÀN HÌNH (VIRTUAL TOUCH CONTROLLER)
+    // 4. TẠO BÀN PHÍM ẢO CẢM ỨNG TRÊN MÀN HÌNH (VIRTUAL TOUCH CONTROLLER)
     // =========================================================================
 
     function createVirtualPad() {
@@ -269,10 +407,49 @@
                 -webkit-tap-highlight-color: transparent;
             }
             .vpad-btn:active, .vpad-btn.pressed {
-                background: rgba(255, 215, 0, 0.8) !important;
+                background: rgba(255, 215, 0, 0.85) !important;
                 color: #111 !important;
                 border-color: #fff !important;
                 transform: scale(0.92);
+            }
+            .vpad-shoulder-btn {
+                position: absolute;
+                pointer-events: auto;
+                background: rgba(40, 50, 75, 0.75);
+                color: #ffffff;
+                border: 2px solid rgba(255, 255, 255, 0.55);
+                border-radius: 21px;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 15px;
+                font-weight: bold;
+                text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+                box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+                touch-action: none;
+                cursor: pointer;
+                transition: transform 0.05s, background 0.05s;
+                -webkit-tap-highlight-color: transparent;
+                width: 68px;
+                height: 42px;
+            }
+            .vpad-shoulder-btn:active, .vpad-shoulder-btn.pressed {
+                background: rgba(255, 215, 0, 0.85) !important;
+                color: #111 !important;
+                border-color: #fff !important;
+                transform: scale(0.92);
+            }
+            .vpad-btn-q {
+                bottom: 205px;
+                bottom: max(205px, calc(env(safe-area-inset-bottom, 25px) + 180px));
+                left: 25px;
+                left: max(25px, env(safe-area-inset-left, 25px));
+            }
+            .vpad-btn-e {
+                bottom: 215px;
+                bottom: max(215px, calc(env(safe-area-inset-bottom, 25px) + 190px));
+                right: 25px;
+                right: max(25px, env(safe-area-inset-right, 25px));
             }
             .vpad-dpad-center {
                 position: absolute;
@@ -319,7 +496,6 @@
         var dpadContainer = document.createElement("div");
         dpadContainer.className = "vpad-dpad-center";
 
-        // Tạo từng nút D-Pad (Up, Down, Left, Right)
         var dpadButtons = [
             { key: "up", label: "▲", left: 58, top: 0, size: 54 },
             { key: "down", label: "▼", left: 58, top: 114, size: 54 },
@@ -369,6 +545,20 @@
         });
         container.appendChild(actionContainer);
 
+        // Nút [◀ Q] (Đổi nhân vật trước / PageUp) - Nằm phía trên D-Pad
+        var btnQ = document.createElement("div");
+        btnQ.className = "vpad-shoulder-btn vpad-btn-q";
+        btnQ.innerText = "◀ Q";
+        bindKeyEvents(btnQ, "pageup");
+        container.appendChild(btnQ);
+
+        // Nút [E ▶] (Đổi nhân vật sau / PageDown) - Nằm phía trên cụm Action
+        var btnE = document.createElement("div");
+        btnE.className = "vpad-shoulder-btn vpad-btn-e";
+        btnE.innerText = "E ▶";
+        bindKeyEvents(btnE, "pagedown");
+        container.appendChild(btnE);
+
         // Nút ẩn / hiện phím ảo
         var toggleBtn = document.createElement("div");
         toggleBtn.className = "vpad-toggle";
@@ -377,6 +567,8 @@
             isPadVisible = !isPadVisible;
             dpadContainer.style.display = isPadVisible ? "block" : "none";
             actionContainer.style.display = isPadVisible ? "block" : "none";
+            btnQ.style.display = isPadVisible ? "flex" : "none";
+            btnE.style.display = isPadVisible ? "flex" : "none";
             toggleBtn.innerText = isPadVisible ? "🎮 Phím Ảo: Bật" : "🎮 Phím Ảo: Tắt";
             toggleBtn.style.opacity = isPadVisible ? "1" : "0.5";
         };
