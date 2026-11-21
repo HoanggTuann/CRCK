@@ -44,10 +44,10 @@ jobs:
           
           cordova platform add ios
           cd platforms/ios
-          xcodebuild -project "Memelis RPG.xcodeproj" -scheme "Memelis RPG" -configuration Debug -destination 'generic/platform=iOS' CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
+          xcodebuild -project "Memelis RPG.xcodeproj" -scheme "Memelis RPG" -configuration Debug -destination 'generic/platform=iOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
           
           mkdir -p Payload
-          cp -r build/Debug-iphoneos/"Memelis RPG.app" Payload/
+          cp -r "build/Build/Products/Debug-iphoneos/Memelis RPG.app" Payload/
           zip -r ../../../Memelis-RPG-Vietsub.ipa Payload
 
       - name: Upload IPA Artifact
