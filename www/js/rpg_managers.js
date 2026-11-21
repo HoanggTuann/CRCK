@@ -1,4 +1,4 @@
-//=============================================================================
+﻿//=============================================================================
 // rpg_managers.js v1.6.2
 //=============================================================================
 
@@ -76,21 +76,59 @@ DataManager.loadDatabase = function() {
 };
 
 DataManager.loadDataFile = function(name, src) {
-    var xhr = new XMLHttpRequest();
     var url = 'data/' + src;
-    xhr.open('GET', url);
-    xhr.overrideMimeType('application/json');
-    xhr.onload = function() {
-        if (xhr.status < 400) {
-            window[name] = JSON.parse(xhr.responseText);
-            DataManager.onLoad(window[name]);
-        }
-    };
-    xhr.onerror = this._mapLoader || function() {
+    var errorHandler = this._mapLoader || function() {
         DataManager._errorUrl = DataManager._errorUrl || url;
     };
+    var loaded = false;
+
+    function applyData(data) {
+        if (!loaded) {
+            loaded = true;
+            window[name] = data;
+            DataManager.onLoad(window[name]);
+        }
+    }
+
+    function tryXhr() {
+        if (loaded) return;
+        var xhr = new XMLHttpRequest();
+        xhr.open('GET', url);
+        xhr.overrideMimeType('application/json');
+        xhr.onload = function() {
+            if (xhr.status < 400 || (xhr.status === 0 && xhr.responseText)) {
+                try {
+                    applyData(JSON.parse(xhr.responseText));
+                } catch(e) {
+                    errorHandler();
+                }
+            } else {
+                errorHandler();
+            }
+        };
+        xhr.onerror = errorHandler;
+        xhr.send();
+    }
+
+    if (typeof fetch === 'function') {
+        fetch(url)
+            .then(function(res) {
+                if (!res.ok && res.status !== 0 && res.status !== 200) {
+                    throw new Error("HTTP " + res.status);
+                }
+                return res.json();
+            })
+            .then(function(json) {
+                applyData(json);
+            })
+            .catch(function(e) {
+                tryXhr();
+            });
+    } else {
+        tryXhr();
+    }
+
     window[name] = null;
-    xhr.send();
 };
 
 DataManager.isDatabaseLoaded = function() {

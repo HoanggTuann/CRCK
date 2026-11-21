@@ -54,7 +54,7 @@ jobs:
           
           cat << 'EOF' > config.xml
           <?xml version='1.0' encoding='utf-8'?>
-          <widget id="com.hoangtuan.memelis" version="1.0.0" xmlns="http://cordova.apache.org/ns/1.0" xmlns:cdv="http://cordova.apache.org/ns/1.0">
+          <widget id="com.hoangtuan.memelis" version="1.0.0" xmlns="http://cordova.apache.org/ns/1.0" xmlns:android="http://schemas.android.com/apk/res/android" xmlns:cdv="http://cordova.apache.org/ns/1.0">
               <name>Memelis RPG</name>
               <description>Memelis' RPG ~Nữ Thánh, Gacha và Hầm Ngục Nguy Hiểm~ Tiếng Việt</description>
               <author email="hoangtuan@users.noreply.github.com">Hoang Tuan</author>
@@ -62,16 +62,22 @@ jobs:
               <access origin="*" />
               <allow-intent href="http://*/*" />
               <allow-intent href="https://*/*" />
+              <allow-navigation href="https://localhost/*" />
+              <allow-navigation href="http://*/*" />
+              <allow-navigation href="https://*/*" />
               <preference name="Orientation" value="landscape" />
               <preference name="Fullscreen" value="true" />
               <preference name="KeepRunning" value="true" />
               <preference name="ShowTitle" value="false" />
-              <preference name="AndroidInsecureFileModeEnabled" value="true" />
               <preference name="ScrollEnabled" value="false" />
               <preference name="DisallowOverscroll" value="true" />
+              <preference name="MixedContentMode" value="0" />
               <platform name="android">
                   <allow-intent href="market:*" />
                   <preference name="AndroidXEnabled" value="true" />
+                  <preference name="scheme" value="https" />
+                  <preference name="hostname" value="localhost" />
+                  <preference name="AndroidInsecureFileModeEnabled" value="false" />
               </platform>
           </widget>
           EOF
@@ -95,7 +101,7 @@ jobs:
         with:
           tag_name: v1.0.0-apk
           name: "Memelis RPG Tiếng Việt v1.0.0 (Android APK)"
-          body: "Tải file `Memelis-RPG-Vietsub.apk` bên dưới để cài trực tiếp lên điện thoại Android."
+          body: "Tải file `Memelis-RPG-Vietsub.apk` bên dưới để cài trực tiếp lên điện thoại Android (Đã sửa triệt để lỗi Failed to load data/Actors.json bằng WebViewAssetLoader https://localhost)."
           files: Memelis-RPG-Vietsub.apk
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

@@ -24,7 +24,6 @@ jobs:
 
       - name: Build iOS Project & IPA
         run: |
-          # Use no-space project name 'MemelisRPG' to avoid codesign space parsing bugs
           cordova create memelis_ios com.hoangtuan.memelis MemelisRPG
           cd memelis_ios
           cat << 'EOF' > config.xml
@@ -35,8 +34,17 @@ jobs:
               <author email="hoangtuan@users.noreply.github.com">Hoang Tuan</author>
               <content src="index.html" />
               <access origin="*" />
+              <allow-intent href="http://*/*" />
+              <allow-intent href="https://*/*" />
+              <allow-navigation href="app://localhost/*" />
+              <allow-navigation href="http://*/*" />
+              <allow-navigation href="https://*/*" />
               <preference name="Orientation" value="landscape" />
               <preference name="Fullscreen" value="true" />
+              <platform name="ios">
+                  <preference name="scheme" value="app" />
+                  <preference name="hostname" value="localhost" />
+              </platform>
           </widget>
           EOF
           
@@ -46,23 +54,17 @@ jobs:
           cordova platform add ios
           cd platforms/ios
           
-          # Build with Xcode Release configuration and disabled signing
           xcodebuild -project "MemelisRPG.xcodeproj" -scheme "MemelisRPG" -configuration Release -destination 'generic/platform=iOS' -derivedDataPath build CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO build
           
-          # Prepare clean Payload directory
           rm -rf Payload
           mkdir -p Payload
           cp -r "build/Build/Products/Release-iphoneos/MemelisRPG.app" Payload/
           
-          # CRITICAL FOR RESIGNING (AltStore, Sideloadly, Esign):
-          # Remove any invalid Xcode dummy signatures that cause signing tools to fail
           rm -rf Payload/MemelisRPG.app/_CodeSignature
           find Payload/MemelisRPG.app -name "_CodeSignature" -type d -exec rm -rf {} + 2>/dev/null || true
           
-          # Ensure correct unix executable permissions
           chmod -R 755 Payload/MemelisRPG.app
           
-          # Create IPA
           zip -qry ../../../Memelis-RPG-Vietsub.ipa Payload
 
       - name: Upload IPA Artifact
