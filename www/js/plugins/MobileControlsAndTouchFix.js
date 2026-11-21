@@ -371,7 +371,27 @@
     // 4. BÀN PHÍM ẢO CẢM ỨNG: CẦN GẠT JOYSTICK + NÚT CHẠY TOGGLE
     // =========================================================================
 
+    // Kiểm tra xem thiết bị có phải nền tảng di động (Android / iOS) hay không
+    function isMobilePlatform() {
+        // Bản chạy trên Windows / PC (NW.js / Game.exe hoặc trình duyệt PC) -> KHÔNG hiện phím ảo
+        if (typeof Utils !== 'undefined' && Utils.isNwjs && Utils.isNwjs()) {
+            return false;
+        }
+        // Ứng dụng di động (Cordova APK / iOS IPA)
+        if (window.cordova || window.Capacitor) {
+            return true;
+        }
+        // Trình duyệt di động trên điện thoại / máy tính bảng
+        if (/Android|iPhone|iPad|iPod|Mobile|Silk|BlackBerry|Opera Mini/i.test(navigator.userAgent)) {
+            return true;
+        }
+        return false;
+    }
+
     function createVirtualPad() {
+        // Chỉ tạo bàn phím ảo và cần gạt trên di động (Android & iOS).
+        // Trên Windows / PC sẽ ẩn hoàn toàn để giữ màn hình sạch sẽ nguyên bản.
+        if (!isMobilePlatform()) return;
         if (document.getElementById("mv-virtual-pad-container")) return;
 
         // Container toàn màn hình
