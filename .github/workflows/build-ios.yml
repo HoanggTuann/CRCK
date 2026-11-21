@@ -76,9 +76,8 @@ jobs:
       - name: Create or Update GitHub Release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: v1.0.0-ipa
-          name: "Memelis RPG Tiếng Việt v1.0.0 (iOS IPA)"
-          body: "Bản IPA chuẩn (đã xóa chữ ký rác, tối ưu tên gói không khoảng trắng để hỗ trợ 100% Sideloadly, AltStore, Esign, Scarlet, TrollStore)."
+          tag_name: v1.0.0
+          name: "Memelis' RPG ~Nữ Thánh, Gacha và Hầm Ngục Nguy Hiểm~ Tiếng Việt (v1.0.0)"
           files: Memelis-RPG-Vietsub.ipa
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
