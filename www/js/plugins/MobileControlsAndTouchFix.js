@@ -2,37 +2,44 @@
 // MobileControlsAndTouchFix.js
 //=============================================================================
 /*:
- * @plugindesc Bàn phím ảo cảm ứng và tối ưu tương tác chạm 1 chạm cho điện thoại (Android & iOS).
+ * @plugindesc Bàn phím ảo cảm ứng (Cần gạt Joystick), chạy toggle và tối ưu chạm 1 chạm cho điện thoại (Android & iOS).
  * @author Assistant
  *
  * @help
  * Plugin này giải quyết toàn diện tương tác trên điện thoại di động:
- * 1. Tương tác chạm 1 chạm (1-Tap): Chạm trực tiếp vào bất kỳ mục menu nào sẽ lập tức chọn và xác nhận (không cần gõ đúp 2 lần).
- * 2. Căn chỉnh toạ độ chạm chuẩn xác: Khắc phục lệch toạ độ do màn hình dài (tai thỏ / viền đen) bằng getBoundingClientRect.
- * 3. Hỗ trợ cảm ứng & chuột cho Menu tranh tùy biến (Custom Picture Menu):
- *    - Chạm/Click trực tiếp vào 8 nút (Item, Skill, Equips, Status, H Status, Settings, Save, Close).
- *    - Hiệu ứng đổi hình sáng khi chọn/hover.
- *    - Chạm ra ngoài menu hoặc nút HỦY để đóng menu ngay lập tức.
- * 4. Chuyển đổi nhân vật tiện lợi trong Equips / Skill / Status / H Status:
- *    - Thêm 2 phím ảo [◀ Q] và [E ▶] ngay trên màn hình để chuyển qua lại nhân vật.
- *    - Phím vật lý: Hỗ trợ phím Q (PageUp) và E/W (PageDown) trên bàn phím.
+ * 1. Cần gạt ảo (Virtual Analog Joystick):
+ *    - Điều khiển di chuyển 8 hướng mượt mà, trực quan thay cho cụm phím 4 nút D-Pad.
+ *    - Cần gạt tự động đàn hồi về tâm khi thả tay.
+ * 2. Nút "CHẠY" chuyển trạng thái BẬT / TẮT (Toggle Dash):
+ *    - Chạm 1 lần để bật tự động chạy liên tục (🏃 BẬT - sáng đèn vàng cam).
+ *    - Chạm lại để tắt (quay về đi bộ bình thường). Không cần phải giữ lì ngón tay!
+ * 3. Chuyển đổi nhân vật tiện lợi trong Equips / Skill / Status / H Status:
+ *    - Thêm 2 phím ảo [◀ Q] và [E ▶] ngay trên màn hình.
+ *    - Hỗ trợ phím vật lý Q (PageUp) và E/W (PageDown) trên bàn phím ngoài.
  *    - Chạm trực tiếp vào khung chân dung/thông số nhân vật để đổi nhân vật ngay lập tức.
- *    - Cho phép đổi nhân vật ngay cả khi đang duyệt danh sách slot trang bị hoặc danh sách kỹ năng.
- * 5. Bàn phím ảo trên màn hình (Virtual Gamepad):
- *    - Cụm điều hướng (Lên, Xuống, Trái, Phải).
- *    - Cụm phím hành động (OK / Chọn, HỦY / Quay lại, MENU, CHẠY, ◀ Q, E ▶).
- *    - Nút bật / tắt bàn phím ảo ở góc trên màn hình.
+ *    - Đổi nhân vật ngay cả khi đang duyệt danh sách slot trang bị hoặc danh sách kỹ năng.
+ * 4. Tương tác chạm 1 chạm (1-Tap): Chạm trực tiếp vào bất kỳ mục menu nào sẽ lập tức chọn và xác nhận.
+ * 5. Căn chỉnh toạ độ chạm pixel-perfect qua getBoundingClientRect.
+ * 6. Hỗ trợ cảm ứng & chuột cho Menu tranh tùy biến (Custom Picture Menu).
  */
 
 (function() {
     "use strict";
 
     var isPadVisible = true;
+    var isDashActive = false; // Trạng thái chạy tự động (Toggle)
 
     // Gán phím vật lý E (69) và Q (81) vào hệ thống PageDown / PageUp của RPG Maker
     Input.keyMapper[69] = 'pagedown'; // Phím E = Đổi nhân vật kế tiếp (Next Actor)
     Input.keyMapper[81] = 'pageup';   // Phím Q = Đổi nhân vật trước (Previous Actor)
     Input.keyMapper[87] = 'pagedown'; // Phím W = Đổi nhân vật kế tiếp
+
+    // Hook Game_Player để khi isDashActive bật thì nhân vật luôn chạy
+    var _Game_Player_isDashButtonPressed = Game_Player.prototype.isDashButtonPressed;
+    Game_Player.prototype.isDashButtonPressed = function() {
+        if (isDashActive) return true;
+        return _Game_Player_isDashButtonPressed.call(this);
+    };
 
     // =========================================================================
     // 1. SỬA TOẠ ĐỘ CHẠM & TƯƠNG TÁC CHẠM 1 CHẠM (1-TAP SELECTION)
@@ -268,11 +275,11 @@
 
     Scene_Map.prototype.updateCustomMenuInteraction = function() {
         if (!$gameSwitches || !$gameSwitches.value(82)) {
-            // Khi menu đã đóng, khôi phục lại cụm D-pad và nút Q nếu trước đó đang bật
-            var dpad = document.querySelector(".vpad-dpad-center");
-            if (dpad && dpad.dataset.menuHidden === "true") {
-                if (isPadVisible) dpad.style.display = "block";
-                dpad.dataset.menuHidden = "false";
+            // Khi menu đã đóng, khôi phục lại cần gạt Joystick và nút Q nếu trước đó đang bật
+            var joystick = document.querySelector(".vpad-joystick-center");
+            if (joystick && joystick.dataset.menuHidden === "true") {
+                if (isPadVisible) joystick.style.display = "block";
+                joystick.dataset.menuHidden = "false";
             }
             var btnQ = document.querySelector(".vpad-btn-q");
             if (btnQ && btnQ.dataset.menuHidden === "true") {
@@ -282,11 +289,11 @@
             return;
         }
 
-        // Tạm ẩn cụm D-pad và nút Q khi mở menu để không che nút Save và Close ở góc trái dưới
-        var dpadEl = document.querySelector(".vpad-dpad-center");
-        if (dpadEl && dpadEl.style.display !== "none") {
-            dpadEl.style.display = "none";
-            dpadEl.dataset.menuHidden = "true";
+        // Tạm ẩn cần gạt Joystick và nút Q khi mở menu để không che nút Save và Close ở góc trái dưới
+        var joystickEl = document.querySelector(".vpad-joystick-center");
+        if (joystickEl && joystickEl.style.display !== "none") {
+            joystickEl.style.display = "none";
+            joystickEl.dataset.menuHidden = "true";
         }
         var btnQEl = document.querySelector(".vpad-btn-q");
         if (btnQEl && btnQEl.style.display !== "none") {
@@ -361,13 +368,13 @@
     };
 
     // =========================================================================
-    // 4. TẠO BÀN PHÍM ẢO CẢM ỨNG TRÊN MÀN HÌNH (VIRTUAL TOUCH CONTROLLER)
+    // 4. BÀN PHÍM ẢO CẢM ỨNG: CẦN GẠT JOYSTICK + NÚT CHẠY TOGGLE
     // =========================================================================
 
     function createVirtualPad() {
         if (document.getElementById("mv-virtual-pad-container")) return;
 
-        // Container
+        // Container toàn màn hình
         var container = document.createElement("div");
         container.id = "mv-virtual-pad-container";
         container.style.cssText = [
@@ -397,7 +404,7 @@
                 display: flex;
                 align-items: center;
                 justify-content: center;
-                font-size: 18px;
+                font-size: 17px;
                 font-weight: bold;
                 text-shadow: 0 1px 3px rgba(0,0,0,0.8);
                 box-shadow: 0 4px 10px rgba(0,0,0,0.5);
@@ -440,8 +447,8 @@
                 transform: scale(0.92);
             }
             .vpad-btn-q {
-                bottom: 205px;
-                bottom: max(205px, calc(env(safe-area-inset-bottom, 25px) + 180px));
+                bottom: 185px;
+                bottom: max(185px, calc(env(safe-area-inset-bottom, 25px) + 160px));
                 left: 25px;
                 left: max(25px, env(safe-area-inset-left, 25px));
             }
@@ -451,16 +458,66 @@
                 right: 25px;
                 right: max(25px, env(safe-area-inset-right, 25px));
             }
-            .vpad-dpad-center {
+
+            /* --- CẦN GẠT JOYSTICK --- */
+            .vpad-joystick-center {
                 position: absolute;
                 bottom: 25px;
                 bottom: max(25px, env(safe-area-inset-bottom, 25px));
                 left: 25px;
                 left: max(25px, env(safe-area-inset-left, 25px));
-                width: 170px;
-                height: 170px;
+                width: 140px;
+                height: 140px;
+                pointer-events: auto;
+                touch-action: none;
+            }
+            .vpad-joystick-base {
+                position: relative;
+                width: 100%;
+                height: 100%;
+                border-radius: 50%;
+                background: radial-gradient(circle, rgba(45, 50, 75, 0.5) 0%, rgba(18, 22, 35, 0.8) 100%);
+                border: 2px solid rgba(255, 255, 255, 0.35);
+                box-shadow: 0 4px 15px rgba(0, 0, 0, 0.55), inset 0 0 10px rgba(255, 255, 255, 0.1);
+                box-sizing: border-box;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+            .vpad-joystick-arrow {
+                position: absolute;
+                color: rgba(255, 255, 255, 0.35);
+                font-size: 13px;
+                font-weight: bold;
                 pointer-events: none;
             }
+            .vpad-arrow-up { top: 6px; }
+            .vpad-arrow-down { bottom: 6px; }
+            .vpad-arrow-left { left: 8px; }
+            .vpad-arrow-right { right: 8px; }
+
+            .vpad-joystick-knob {
+                position: absolute;
+                top: calc(50% - 28px);
+                left: calc(50% - 28px);
+                width: 56px;
+                height: 56px;
+                border-radius: 50%;
+                background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.95), rgba(195, 205, 225, 0.85) 60%, rgba(110, 120, 140, 0.9));
+                border: 2px solid rgba(255, 255, 255, 0.9);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.6), inset 0 2px 4px rgba(255, 255, 255, 0.8);
+                pointer-events: none;
+                transform: translate3d(0, 0, 0);
+                transition: transform 0.08s ease-out;
+            }
+            .vpad-joystick-knob.active {
+                background: radial-gradient(circle at 35% 35%, #ffffff, #ffe066 60%, #e6a800 100%);
+                border-color: #ffd700;
+                box-shadow: 0 0 16px rgba(255, 215, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.6);
+                transition: none;
+            }
+
+            /* --- CỤM ACTION NÚT BÊN PHẢI --- */
             .vpad-actions-center {
                 position: absolute;
                 bottom: 25px;
@@ -492,31 +549,157 @@
         `;
         document.head.appendChild(style);
 
-        // Cụm D-Pad bên trái
-        var dpadContainer = document.createElement("div");
-        dpadContainer.className = "vpad-dpad-center";
+        // =====================================================================
+        // TẠO CẦN GẠT JOYSTICK
+        // =====================================================================
+        var joystickContainer = document.createElement("div");
+        joystickContainer.className = "vpad-joystick-center";
 
-        var dpadButtons = [
-            { key: "up", label: "▲", left: 58, top: 0, size: 54 },
-            { key: "down", label: "▼", left: 58, top: 114, size: 54 },
-            { key: "left", label: "◄", left: 0, top: 58, size: 54 },
-            { key: "right", label: "►", left: 114, top: 58, size: 54 }
-        ];
+        var joystickBase = document.createElement("div");
+        joystickBase.className = "vpad-joystick-base";
 
-        dpadButtons.forEach(function(b) {
-            var btn = document.createElement("div");
-            btn.className = "vpad-btn";
-            btn.style.width = b.size + "px";
-            btn.style.height = b.size + "px";
-            btn.style.left = b.left + "px";
-            btn.style.top = b.top + "px";
-            btn.innerText = b.label;
-            bindKeyEvents(btn, b.key);
-            dpadContainer.appendChild(btn);
+        // Mũi tên định hướng trên vành joystick
+        var arrowUp = document.createElement("div");
+        arrowUp.className = "vpad-joystick-arrow vpad-arrow-up";
+        arrowUp.innerText = "▲";
+        var arrowDown = document.createElement("div");
+        arrowDown.className = "vpad-joystick-arrow vpad-arrow-down";
+        arrowDown.innerText = "▼";
+        var arrowLeft = document.createElement("div");
+        arrowLeft.className = "vpad-joystick-arrow vpad-arrow-left";
+        arrowLeft.innerText = "◄";
+        var arrowRight = document.createElement("div");
+        arrowRight.className = "vpad-joystick-arrow vpad-arrow-right";
+        arrowRight.innerText = "►";
+
+        var joystickKnob = document.createElement("div");
+        joystickKnob.className = "vpad-joystick-knob";
+
+        joystickBase.appendChild(arrowUp);
+        joystickBase.appendChild(arrowDown);
+        joystickBase.appendChild(arrowLeft);
+        joystickBase.appendChild(arrowRight);
+        joystickBase.appendChild(joystickKnob);
+        joystickContainer.appendChild(joystickBase);
+        container.appendChild(joystickContainer);
+
+        // Xử lý kéo thả Joystick
+        var activeTouchId = null;
+        var isMouseDown = false;
+
+        function updateJoystick(clientX, clientY) {
+            var rect = joystickBase.getBoundingClientRect();
+            var centerX = rect.left + rect.width / 2;
+            var centerY = rect.top + rect.height / 2;
+            var dx = clientX - centerX;
+            var dy = clientY - centerY;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            var maxDist = 45;
+
+            if (dist > maxDist) {
+                dx = (dx / dist) * maxDist;
+                dy = (dy / dist) * maxDist;
+            }
+
+            joystickKnob.style.transform = "translate3d(" + dx + "px, " + dy + "px, 0)";
+
+            var deadZone = 12;
+            if (dist < deadZone) {
+                Input._currentState['right'] = false;
+                Input._currentState['left']  = false;
+                Input._currentState['down']  = false;
+                Input._currentState['up']    = false;
+            } else {
+                var nx = dx / dist;
+                var ny = dy / dist;
+                // Góc 8 hướng (ngưỡng sin 22.5 độ = 0.38)
+                Input._currentState['right'] = (nx > 0.38);
+                Input._currentState['left']  = (nx < -0.38);
+                Input._currentState['down']  = (ny > 0.38);
+                Input._currentState['up']    = (ny < -0.38);
+            }
+        }
+
+        function resetJoystick() {
+            activeTouchId = null;
+            isMouseDown = false;
+            joystickKnob.classList.remove("active");
+            joystickKnob.style.transform = "translate3d(0, 0, 0)";
+            Input._currentState['right'] = false;
+            Input._currentState['left']  = false;
+            Input._currentState['down']  = false;
+            Input._currentState['up']    = false;
+        }
+
+        joystickContainer.addEventListener("touchstart", function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (activeTouchId === null) {
+                var touch = e.changedTouches[0];
+                activeTouchId = touch.identifier;
+                joystickKnob.classList.add("active");
+                updateJoystick(touch.clientX, touch.clientY);
+            }
+        }, { passive: false });
+
+        window.addEventListener("touchmove", function(e) {
+            if (activeTouchId !== null) {
+                for (var i = 0; i < e.changedTouches.length; i++) {
+                    var touch = e.changedTouches[i];
+                    if (touch.identifier === activeTouchId) {
+                        e.preventDefault();
+                        updateJoystick(touch.clientX, touch.clientY);
+                        break;
+                    }
+                }
+            }
+        }, { passive: false });
+
+        window.addEventListener("touchend", function(e) {
+            if (activeTouchId !== null) {
+                for (var i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === activeTouchId) {
+                        resetJoystick();
+                        break;
+                    }
+                }
+            }
+        }, { passive: false });
+
+        window.addEventListener("touchcancel", function(e) {
+            if (activeTouchId !== null) {
+                for (var i = 0; i < e.changedTouches.length; i++) {
+                    if (e.changedTouches[i].identifier === activeTouchId) {
+                        resetJoystick();
+                        break;
+                    }
+                }
+            }
+        }, { passive: false });
+
+        // Hỗ trợ chuột cho Joystick
+        joystickContainer.addEventListener("mousedown", function(e) {
+            e.preventDefault();
+            isMouseDown = true;
+            joystickKnob.classList.add("active");
+            updateJoystick(e.clientX, e.clientY);
         });
-        container.appendChild(dpadContainer);
 
-        // Cụm Nút Hành Động bên phải
+        window.addEventListener("mousemove", function(e) {
+            if (isMouseDown) {
+                updateJoystick(e.clientX, e.clientY);
+            }
+        });
+
+        window.addEventListener("mouseup", function(e) {
+            if (isMouseDown) {
+                resetJoystick();
+            }
+        });
+
+        // =====================================================================
+        // CỤM NÚT HÀNH ĐỘNG BÊN PHẢI
+        // =====================================================================
         var actionContainer = document.createElement("div");
         actionContainer.className = "vpad-actions-center";
 
@@ -526,9 +709,7 @@
             // Nút Hủy / Back (B)
             { key: "escape", label: "HỦY", right: 65, top: 115, size: 54, bg: "rgba(178, 34, 34, 0.75)" },
             // Nút Menu
-            { key: "menu", label: "MENU", right: 65, top: 0, size: 50, bg: "rgba(70, 130, 180, 0.75)" },
-            // Nút Chạy / Dash (Shift)
-            { key: "shift", label: "CHẠY", right: 125, top: 60, size: 48, bg: "rgba(106, 90, 205, 0.75)" }
+            { key: "menu", label: "MENU", right: 65, top: 0, size: 50, bg: "rgba(70, 130, 180, 0.75)" }
         ];
 
         actionButtons.forEach(function(b) {
@@ -543,9 +724,53 @@
             bindKeyEvents(btn, b.key);
             actionContainer.appendChild(btn);
         });
+
+        // =====================================================================
+        // NÚT CHẠY DẠNG TOGGLE (CHUYỂN TRẠNG THÁI BẬT / TẮT)
+        // =====================================================================
+        var dashBtn = document.createElement("div");
+        dashBtn.className = "vpad-btn vpad-dash-toggle";
+        dashBtn.style.width = "52px";
+        dashBtn.style.height = "52px";
+        dashBtn.style.right = "125px";
+        dashBtn.style.top = "58px";
+        dashBtn.style.fontSize = "13px";
+
+        function updateDashUI() {
+            if (isDashActive) {
+                dashBtn.innerText = "🏃 BẬT";
+                dashBtn.style.background = "rgba(255, 140, 0, 0.95)";
+                dashBtn.style.borderColor = "#ffd700";
+                dashBtn.style.boxShadow = "0 0 14px rgba(255, 165, 0, 0.9), 0 4px 10px rgba(0,0,0,0.5)";
+                dashBtn.style.color = "#ffffff";
+            } else {
+                dashBtn.innerText = "CHẠY";
+                dashBtn.style.background = "rgba(106, 90, 205, 0.75)";
+                dashBtn.style.borderColor = "rgba(255, 255, 255, 0.45)";
+                dashBtn.style.boxShadow = "0 4px 10px rgba(0,0,0,0.5)";
+                dashBtn.style.color = "#ffffff";
+            }
+        }
+        updateDashUI();
+
+        function toggleDash(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            isDashActive = !isDashActive;
+            Input._currentState['shift'] = isDashActive;
+            updateDashUI();
+            SoundManager.playCursor();
+        }
+
+        dashBtn.addEventListener("touchstart", toggleDash, { passive: false });
+        dashBtn.addEventListener("mousedown", toggleDash);
+        actionContainer.appendChild(dashBtn);
+
         container.appendChild(actionContainer);
 
-        // Nút [◀ Q] (Đổi nhân vật trước / PageUp) - Nằm phía trên D-Pad
+        // Nút [◀ Q] (Đổi nhân vật trước / PageUp) - Nằm phía trên Joystick
         var btnQ = document.createElement("div");
         btnQ.className = "vpad-shoulder-btn vpad-btn-q";
         btnQ.innerText = "◀ Q";
@@ -565,7 +790,7 @@
         toggleBtn.innerText = "🎮 Phím Ảo: Bật";
         toggleBtn.onclick = function() {
             isPadVisible = !isPadVisible;
-            dpadContainer.style.display = isPadVisible ? "block" : "none";
+            joystickContainer.style.display = isPadVisible ? "block" : "none";
             actionContainer.style.display = isPadVisible ? "block" : "none";
             btnQ.style.display = isPadVisible ? "flex" : "none";
             btnE.style.display = isPadVisible ? "flex" : "none";
@@ -577,7 +802,7 @@
         document.body.appendChild(container);
     }
 
-    // Gắn sự kiện cảm ứng và chuột vào hệ thống Input của game
+    // Gắn sự kiện cảm ứng và chuột vào hệ thống Input của game cho các nút thường
     function bindKeyEvents(element, keyName) {
         var isDown = false;
 
