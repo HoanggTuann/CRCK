@@ -39,15 +39,11 @@ Game được phát triển trên RPG Maker MV (HTML5 / WebGL) nên tương thí
 
 ---
 
-## 🍎 3. Hướng Dẫn Chơi Trên iPhone / iPad (iOS)
+## 🍎 3. Chơi Trên iPhone / iPad (iOS)
 
-Game chạy mượt mà trên Safari iOS thông qua tính năng **PWA (Progressive Web App)**:
-
-1. Chạy máy chủ nội bộ trên máy tính (dùng script `server.ps1` hoặc `npx http-server www -p 8080`).
-2. Mở trình duyệt Safari trên iPhone/iPad và truy cập địa chỉ: `http://<IP_MÁY_TÍNH>:8080`.
-3. Nhấn vào nút **Chia sẻ** (Share) ở dưới thanh công cụ Safari.
-4. Chọn **"Thêm vào MH chính"** (**Add to Home Screen**).
-5. Mở game từ màn hình chính để chơi toàn màn hình không có viền trình duyệt.
+Game chạy trên nền tảng WebGL/HTML5:
+- Có thể dùng các ứng dụng Web Player dành cho RPG Maker trên iOS (như **KAS Player** hoặc sideload ứng dụng Web Player qua AltStore/TrollStore).
+- Hoặc mở qua link web nếu game được đưa lên một trang web / dịch vụ hosting bất kỳ.
 
 ---
 
