@@ -9,7 +9,11 @@
  * Plugin này giải quyết toàn diện tương tác trên điện thoại di động:
  * 1. Tương tác chạm 1 chạm (1-Tap): Chạm trực tiếp vào bất kỳ mục menu nào sẽ lập tức chọn và xác nhận (không cần gõ đúp 2 lần).
  * 2. Căn chỉnh toạ độ chạm chuẩn xác: Khắc phục lệch toạ độ do màn hình dài (tai thỏ / viền đen) bằng getBoundingClientRect.
- * 3. Bàn phím ảo trên màn hình (Virtual Gamepad):
+ * 3. Hỗ trợ cảm ứng & chuột cho Menu tranh tùy biến (Custom Picture Menu):
+ *    - Chạm/Click trực tiếp vào 8 nút (Item, Skill, Equips, Status, H Status, Settings, Save, Close).
+ *    - Hiệu ứng đổi hình sáng khi chọn/hover.
+ *    - Chạm ra ngoài menu hoặc nút HỦY để đóng menu ngay lập tức.
+ * 4. Bàn phím ảo trên màn hình (Virtual Gamepad):
  *    - Cụm điều hướng (Lên, Xuống, Trái, Phải).
  *    - Cụm phím hành động (OK / Chọn, HỦY / Quay lại, MENU, CHẠY).
  *    - Nút bật / tắt bàn phím ảo ở góc trên màn hình.
@@ -17,6 +21,8 @@
 
 (function() {
     "use strict";
+
+    var isPadVisible = true;
 
     // =========================================================================
     // 1. SỬA TOẠ ĐỘ CHẠM & TƯƠNG TÁC CHẠM 1 CHẠM (1-TAP SELECTION)
@@ -39,7 +45,7 @@
         return 0;
     };
 
-    // 1 chạm là Chọn và Xác Nhận ngay lập tức cho mọi menu
+    // 1 chạm là Chọn và Xác Nhận ngay lập tức cho mọi menu cửa sổ (Window_Selectable)
     var _Window_Selectable_onTouch = Window_Selectable.prototype.onTouch;
     Window_Selectable.prototype.onTouch = function(triggered) {
         var lastIndex = this.index();
@@ -69,7 +75,155 @@
     };
 
     // =========================================================================
-    // 2. TẠO BÀN PHÍM ẢO CẢM ỨNG TRÊN MÀN HÌNH (VIRTUAL TOUCH CONTROLLER)
+    // 2. TƯƠNG TÁC CHẠM & CHUỘT CHO MENU TRANH TÙY BIẾN (CUSTOM PICTURE MENU)
+    // =========================================================================
+
+    // Danh sách 8 nút trong Menu tranh tùy biến của game
+    var customMenuButtons = [
+        { id: 31, base: "menu_button_01_item",   sel: "menu_button_01_item_sel" },
+        { id: 32, base: "menu_button_02_skill",  sel: "menu_button_02_skill_sel" },
+        { id: 33, base: "menu_button_03_equip",  sel: "menu_button_03_equip_sel" },
+        { id: 34, base: "menu_button_04_status", sel: "menu_button_04_status_sel" },
+        { id: 36, base: "menu_button_05_ero",    sel: "menu_button_05_ero_sel" },
+        { id: 37, base: "menu_button_06_option", sel: "menu_button_06_option_sel" },
+        { id: 38, base: "menu_button_07_save",   sel: "menu_button_07_save_sel" },
+        { id: 39, base: "menu_button_08_end",    sel: "menu_button_08_end_sel" }
+    ];
+
+    function updateCustomMenuPictures(selectedIndex) {
+        if (!$gameScreen) return;
+        for (var i = 0; i < customMenuButtons.length; i++) {
+            var b = customMenuButtons[i];
+            var name = (i + 1 === selectedIndex) ? b.sel : b.base;
+            $gameScreen.showPicture(b.id, name, 0, 0, 0, 100, 100, 255, 0);
+        }
+    }
+
+    function getCustomMenuButtonIndex(x, y) {
+        // Cột các nút menu nằm từ x = 0 đến x = 245
+        if (x < 0 || x > 245) return 0;
+        // Từng nút theo trục Y (dựa trên bounding box thực tế của các ảnh nút)
+        if (y >= 105 && y < 168) return 1; // Item
+        if (y >= 168 && y < 230) return 2; // Skill
+        if (y >= 230 && y < 294) return 3; // Equips
+        if (y >= 294 && y < 356) return 4; // Status
+        if (y >= 356 && y < 420) return 5; // H Status
+        if (y >= 420 && y < 482) return 6; // Settings (Options)
+        if (y >= 482 && y < 546) return 7; // Save
+        if (y >= 546 && y <= 615) return 8; // Close / End
+        return 0;
+    }
+
+    // Chặn nhân vật di chuyển trên bản đồ khi menu tranh đang mở
+    var _Scene_Map_isMapTouchOk = Scene_Map.prototype.isMapTouchOk;
+    Scene_Map.prototype.isMapTouchOk = function() {
+        if ($gameSwitches && $gameSwitches.value(82)) {
+            return false;
+        }
+        return _Scene_Map_isMapTouchOk.call(this);
+    };
+
+    var _Game_Player_canMove = Game_Player.prototype.canMove;
+    Game_Player.prototype.canMove = function() {
+        if ($gameSwitches && $gameSwitches.value(82)) {
+            return false;
+        }
+        return _Game_Player_canMove.call(this);
+    };
+
+    // Bắt tương tác chuột và cảm ứng cho menu tùy biến
+    var _Scene_Map_update = Scene_Map.prototype.update;
+    Scene_Map.prototype.update = function() {
+        _Scene_Map_update.call(this);
+        this.updateCustomMenuInteraction();
+    };
+
+    Scene_Map.prototype.updateCustomMenuInteraction = function() {
+        if (!$gameSwitches || !$gameSwitches.value(82)) {
+            // Khi menu đã đóng, khôi phục lại cụm D-pad nếu trước đó đang bật
+            var dpad = document.querySelector(".vpad-dpad-center");
+            if (dpad && dpad.dataset.menuHidden === "true") {
+                if (isPadVisible) dpad.style.display = "block";
+                dpad.dataset.menuHidden = "false";
+            }
+            return;
+        }
+
+        // Tạm ẩn cụm D-pad khi mở menu để không che nút Save và Close ở góc trái dưới
+        var dpadEl = document.querySelector(".vpad-dpad-center");
+        if (dpadEl && dpadEl.style.display !== "none") {
+            dpadEl.style.display = "none";
+            dpadEl.dataset.menuHidden = "true";
+        }
+
+        var tx = TouchInput.x;
+        var ty = TouchInput.y;
+
+        // 1. Hover chuột (trên PC): rê chuột tới đâu sáng nút đó
+        var hovered = getCustomMenuButtonIndex(tx, ty);
+        if (hovered > 0 && $gameVariables.value(21) !== hovered) {
+            $gameVariables.setValue(21, hovered);
+            updateCustomMenuPictures(hovered);
+            SoundManager.playCursor();
+        }
+
+        // 2. Chạm màn hình hoặc click chuột trái
+        if (TouchInput.isTriggered()) {
+            var clicked = getCustomMenuButtonIndex(tx, ty);
+            if (clicked > 0) {
+                $gameVariables.setValue(21, clicked);
+                updateCustomMenuPictures(clicked);
+                SoundManager.playOk();
+
+                switch (clicked) {
+                    case 1:
+                        SceneManager.push(Scene_Item);
+                        break;
+                    case 2:
+                        SceneManager.push(Scene_Skill);
+                        break;
+                    case 3:
+                        SceneManager.push(Scene_Equip);
+                        break;
+                    case 4:
+                        SceneManager.push(Scene_Status);
+                        break;
+                    case 5:
+                        SceneManager.push(Scene_EroStatus);
+                        break;
+                    case 6:
+                        SceneManager.push(Scene_Options);
+                        break;
+                    case 7:
+                        SceneManager.push(Scene_Save);
+                        $gameTemp.reserveCommonEvent(18);
+                        break;
+                    case 8:
+                        // Kích hoạt xác nhận Về màn hình chính / Hủy
+                        Input._currentState['ok'] = true;
+                        setTimeout(function() {
+                            Input._currentState['ok'] = false;
+                        }, 60);
+                        break;
+                }
+                TouchInput.clear();
+            } else if (tx > 245 || ty < 100 || ty > 615) {
+                // Chạm vào bất kỳ vị trí nào bên ngoài cột nút menu -> Đóng menu
+                SoundManager.playCancel();
+                $gameTemp.reserveCommonEvent(11);
+                TouchInput.clear();
+            }
+        }
+
+        // 3. Phím HỦY / Quay lại (ESC, phím HỦY trên bàn phím ảo, hoặc chuột phải)
+        if (Input.isTriggered('cancel') || Input.isTriggered('escape') || TouchInput.isCancelled()) {
+            SoundManager.playCancel();
+            $gameTemp.reserveCommonEvent(11);
+        }
+    };
+
+    // =========================================================================
+    // 3. TẠO BÀN PHÍM ẢO CẢM ỨNG TRÊN MÀN HÌNH (VIRTUAL TOUCH CONTROLLER)
     // =========================================================================
 
     function createVirtualPad() {
@@ -219,7 +373,6 @@
         var toggleBtn = document.createElement("div");
         toggleBtn.className = "vpad-toggle";
         toggleBtn.innerText = "🎮 Phím Ảo: Bật";
-        var isPadVisible = true;
         toggleBtn.onclick = function() {
             isPadVisible = !isPadVisible;
             dpadContainer.style.display = isPadVisible ? "block" : "none";
