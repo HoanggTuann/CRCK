@@ -29,191 +29,230 @@
     var isPadVisible = true;
     var isDashActive = false; // Trạng thái chạy tự động (Toggle)
 
-    // Gán phím vật lý E (69) và Q (81) vào hệ thống PageDown / PageUp của RPG Maker
-    Input.keyMapper[69] = 'pagedown'; // Phím E = Đổi nhân vật kế tiếp (Next Actor)
-    Input.keyMapper[81] = 'pageup';   // Phím Q = Đổi nhân vật trước (Previous Actor)
-    Input.keyMapper[87] = 'pagedown'; // Phím W = Đổi nhân vật kế tiếp
+    try {
+        // Gán phím vật lý E (69) và Q (81) vào hệ thống PageDown / PageUp của RPG Maker
+        if (typeof Input !== 'undefined' && Input.keyMapper) {
+            Input.keyMapper[69] = 'pagedown'; // Phím E = Đổi nhân vật kế tiếp (Next Actor)
+            Input.keyMapper[81] = 'pageup';   // Phím Q = Đổi nhân vật trước (Previous Actor)
+            Input.keyMapper[87] = 'pagedown'; // Phím W = Đổi nhân vật kế tiếp
+        }
 
-    // Hook Game_Player để khi isDashActive bật thì nhân vật luôn chạy
-    var _Game_Player_isDashButtonPressed = Game_Player.prototype.isDashButtonPressed;
-    Game_Player.prototype.isDashButtonPressed = function() {
-        if (isDashActive) return true;
-        return _Game_Player_isDashButtonPressed.call(this);
-    };
+        // Hook Game_Player để khi isDashActive bật thì nhân vật luôn chạy
+        if (typeof Game_Player !== 'undefined' && Game_Player.prototype) {
+            var _Game_Player_isDashButtonPressed = Game_Player.prototype.isDashButtonPressed;
+            Game_Player.prototype.isDashButtonPressed = function() {
+                if (isDashActive) return true;
+                return _Game_Player_isDashButtonPressed ? _Game_Player_isDashButtonPressed.call(this) : false;
+            };
+        }
+    } catch (e) {
+        console.error("Init keyMapper/Game_Player error:", e);
+    }
 
     // =========================================================================
     // 1. SỬA TOẠ ĐỘ CHẠM & TƯƠNG TÁC CHẠM 1 CHẠM (1-TAP SELECTION)
     // =========================================================================
 
-    // Sửa toạ độ pixel-perfect bất chấp tỉ lệ màn hình điện thoại
-    Graphics.pageToCanvasX = function(x) {
-        if (this._canvas) {
-            var rect = this._canvas.getBoundingClientRect();
-            return Math.round((x - rect.left) * (this._width / rect.width));
-        }
-        return 0;
-    };
-
-    Graphics.pageToCanvasY = function(y) {
-        if (this._canvas) {
-            var rect = this._canvas.getBoundingClientRect();
-            return Math.round((y - rect.top) * (this._height / rect.height));
-        }
-        return 0;
-    };
-
-    // 1 chạm là Chọn và Xác Nhận ngay lập tức cho mọi menu cửa sổ (Window_Selectable)
-    var _Window_Selectable_onTouch = Window_Selectable.prototype.onTouch;
-    Window_Selectable.prototype.onTouch = function(triggered) {
-        var lastIndex = this.index();
-        var x = this.canvasToLocalX(TouchInput.x);
-        var y = this.canvasToLocalY(TouchInput.y);
-        var hitIndex = this.hitTest(x, y);
-
-        if (hitIndex >= 0) {
-            if (triggered) {
-                this.select(hitIndex);
-                if (this.isTouchOkEnabled()) {
-                    this.processOk();
+    try {
+        if (typeof Graphics !== 'undefined') {
+            Graphics.pageToCanvasX = function(x) {
+                if (this._canvas) {
+                    var rect = this._canvas.getBoundingClientRect();
+                    return Math.round((x - rect.left) * (this._width / rect.width));
                 }
-            } else if (this.isCursorMovable()) {
-                this.select(hitIndex);
-            }
-        } else if (this._stayCount >= 10) {
-            if (y < this.padding) {
-                this.cursorUp();
-            } else if (y >= this.height - this.padding) {
-                this.cursorDown();
-            }
+                return 0;
+            };
+
+            Graphics.pageToCanvasY = function(y) {
+                if (this._canvas) {
+                    var rect = this._canvas.getBoundingClientRect();
+                    return Math.round((y - rect.top) * (this._height / rect.height));
+                }
+                return 0;
+            };
         }
-        if (this.index() !== lastIndex) {
-            SoundManager.playCursor();
+
+        if (typeof Window_Selectable !== 'undefined' && Window_Selectable.prototype) {
+            var _Window_Selectable_onTouch = Window_Selectable.prototype.onTouch;
+            Window_Selectable.prototype.onTouch = function(triggered) {
+                var lastIndex = this.index();
+                var x = this.canvasToLocalX(TouchInput.x);
+                var y = this.canvasToLocalY(TouchInput.y);
+                var hitIndex = this.hitTest(x, y);
+
+                if (hitIndex >= 0) {
+                    if (triggered) {
+                        this.select(hitIndex);
+                        if (this.isTouchOkEnabled()) {
+                            this.processOk();
+                        }
+                    } else if (this.isCursorMovable()) {
+                        this.select(hitIndex);
+                    }
+                } else if (this._stayCount >= 10) {
+                    if (y < this.padding) {
+                        this.cursorUp();
+                    } else if (y >= this.height - this.padding) {
+                        this.cursorDown();
+                    }
+                }
+                if (this.index() !== lastIndex) {
+                    SoundManager.playCursor();
+                }
+            };
         }
-    };
+    } catch (e) {
+        console.error("1-tap touch init error:", e);
+    }
 
     // =========================================================================
     // 2. HỖ TRỢ CHUYỂN ĐỔI NHÂN VẬT TIỆN LỢI TRONG MENU (EQUIP, SKILL, STATUS, H STATUS)
     // =========================================================================
 
-    // [Scene_Equip]
-    // Cho phép bấm Q/E đổi nhân vật ngay cả khi đang ở cửa sổ Slot và Item
-    var _Scene_Equip_createSlotWindow = Scene_Equip.prototype.createSlotWindow;
-    Scene_Equip.prototype.createSlotWindow = function() {
-        _Scene_Equip_createSlotWindow.call(this);
-        this._slotWindow.setHandler('pagedown', this.nextActor.bind(this));
-        this._slotWindow.setHandler('pageup',   this.previousActor.bind(this));
-    };
-
-    var _Scene_Equip_createItemWindow = Scene_Equip.prototype.createItemWindow;
-    Scene_Equip.prototype.createItemWindow = function() {
-        _Scene_Equip_createItemWindow.call(this);
-        this._itemWindow.setHandler('pagedown', this.nextActor.bind(this));
-        this._itemWindow.setHandler('pageup',   this.previousActor.bind(this));
-    };
-
-    var _Scene_Equip_onActorChange = Scene_Equip.prototype.onActorChange;
-    Scene_Equip.prototype.onActorChange = function() {
-        var wasSlotActive = this._slotWindow && this._slotWindow.active;
-        var slotIndex = this._slotWindow ? this._slotWindow.index() : 0;
-        _Scene_Equip_onActorChange.call(this);
-        if (wasSlotActive && this._slotWindow) {
-            this._commandWindow.deactivate();
-            this._slotWindow.activate();
-            this._slotWindow.select(slotIndex);
-        }
-    };
-
-    // Chạm trực tiếp vào khung Status/Face nhân vật bên trái để đổi nhân vật
-    var _Scene_Equip_update = Scene_Equip.prototype.update;
-    Scene_Equip.prototype.update = function() {
-        _Scene_Equip_update.call(this);
-        if (TouchInput.isTriggered() && this._statusWindow && this.isActive()) {
-            var x = Graphics.pageToCanvasX(TouchInput.x);
-            var y = Graphics.pageToCanvasY(TouchInput.y);
-            var sw = this._statusWindow;
-            if (x >= sw.x && x < sw.x + sw.width && y >= sw.y && y < sw.y + sw.height) {
-                SoundManager.playCursor();
-                this.nextActor();
-                TouchInput.clear();
-            }
-        }
-    };
-
-    // [Scene_Skill]
-    var _Scene_Skill_createItemWindow = Scene_Skill.prototype.createItemWindow;
-    Scene_Skill.prototype.createItemWindow = function() {
-        _Scene_Skill_createItemWindow.call(this);
-        this._itemWindow.setHandler('pagedown', this.nextActor.bind(this));
-        this._itemWindow.setHandler('pageup',   this.previousActor.bind(this));
-    };
-
-    var _Scene_Skill_onActorChange = Scene_Skill.prototype.onActorChange;
-    Scene_Skill.prototype.onActorChange = function() {
-        var wasItemActive = this._itemWindow && this._itemWindow.active;
-        _Scene_Skill_onActorChange.call(this);
-        if (wasItemActive && this._itemWindow) {
-            this._skillTypeWindow.deactivate();
-            this._itemWindow.activate();
-            this._itemWindow.select(0);
-        }
-    };
-
-    var _Scene_Skill_update = Scene_Skill.prototype.update;
-    Scene_Skill.prototype.update = function() {
-        _Scene_Skill_update.call(this);
-        if (TouchInput.isTriggered() && this._statusWindow && this.isActive()) {
-            var x = Graphics.pageToCanvasX(TouchInput.x);
-            var y = Graphics.pageToCanvasY(TouchInput.y);
-            var sw = this._statusWindow;
-            if (x >= sw.x && x < sw.x + sw.width && y >= sw.y && y < sw.y + sw.height) {
-                SoundManager.playCursor();
-                this.nextActor();
-                TouchInput.clear();
-            }
-        }
-    };
-
-    // [Scene_Status]
-    var _Scene_Status_update = Scene_Status.prototype.update;
-    Scene_Status.prototype.update = function() {
-        _Scene_Status_update.call(this);
-        if (TouchInput.isTriggered() && this._statusWindow && this.isActive()) {
-            var x = Graphics.pageToCanvasX(TouchInput.x);
-            if (x < Graphics.boxWidth / 2) {
-                SoundManager.playCursor();
-                this.previousActor();
-            } else {
-                SoundManager.playCursor();
-                this.nextActor();
-            }
-            TouchInput.clear();
-        }
-    };
-
-    // [Window_EroStatus / H Status Plugin]
-    if (typeof Window_EroStatus !== 'undefined') {
-        var _Window_EroStatus_update = Window_EroStatus.prototype.update;
-        Window_EroStatus.prototype.update = function() {
-            if (typeof CBR_eroStatusState !== 'undefined' && 1 < CBR_eroStatusState.num.length && this.isOpenAndActive()) {
-                if (Input.isTriggered('pagedown')) {
-                    SoundManager.playCursor(2);
-                    CBR_eroStatusState.now = ((CBR_eroStatusState.now + 1) < CBR_eroStatusState.num.length) ? CBR_eroStatusState.now + 1 : 0;
-                    this._CBR_complete = false;
-                } else if (Input.isTriggered('pageup')) {
-                    SoundManager.playCursor(2);
-                    CBR_eroStatusState.now = ((CBR_eroStatusState.now) < 1) ? CBR_eroStatusState.num.length - 1 : CBR_eroStatusState.now - 1;
-                    this._CBR_complete = false;
+    try {
+        // [Scene_Equip]
+        if (typeof Scene_Equip !== 'undefined' && Scene_Equip.prototype) {
+            var _Scene_Equip_createSlotWindow = Scene_Equip.prototype.createSlotWindow;
+            Scene_Equip.prototype.createSlotWindow = function() {
+                if (_Scene_Equip_createSlotWindow) _Scene_Equip_createSlotWindow.call(this);
+                if (this._slotWindow) {
+                    this._slotWindow.setHandler('pagedown', this.nextActor.bind(this));
+                    this._slotWindow.setHandler('pageup',   this.previousActor.bind(this));
                 }
-            }
-            _Window_EroStatus_update.call(this);
-        };
+            };
+
+            var _Scene_Equip_createItemWindow = Scene_Equip.prototype.createItemWindow;
+            Scene_Equip.prototype.createItemWindow = function() {
+                if (_Scene_Equip_createItemWindow) _Scene_Equip_createItemWindow.call(this);
+                if (this._itemWindow) {
+                    this._itemWindow.setHandler('pagedown', this.nextActor.bind(this));
+                    this._itemWindow.setHandler('pageup',   this.previousActor.bind(this));
+                }
+            };
+
+            var _Scene_Equip_onActorChange = Scene_Equip.prototype.onActorChange;
+            Scene_Equip.prototype.onActorChange = function() {
+                var wasSlotActive = this._slotWindow && this._slotWindow.active;
+                var slotIndex = this._slotWindow ? this._slotWindow.index() : 0;
+                if (_Scene_Equip_onActorChange) _Scene_Equip_onActorChange.call(this);
+                if (wasSlotActive && this._slotWindow) {
+                    if (this._commandWindow) this._commandWindow.deactivate();
+                    this._slotWindow.activate();
+                    this._slotWindow.select(slotIndex);
+                }
+            };
+
+            var _Scene_Equip_update = Scene_Equip.prototype.update;
+            Scene_Equip.prototype.update = function() {
+                if (_Scene_Equip_update) {
+                    _Scene_Equip_update.call(this);
+                } else if (Scene_MenuBase.prototype.update) {
+                    Scene_MenuBase.prototype.update.call(this);
+                }
+                if (TouchInput.isTriggered() && this._statusWindow && this.isActive()) {
+                    var x = Graphics.pageToCanvasX(TouchInput.x);
+                    var y = Graphics.pageToCanvasY(TouchInput.y);
+                    var sw = this._statusWindow;
+                    if (x >= sw.x && x < sw.x + sw.width && y >= sw.y && y < sw.y + sw.height) {
+                        SoundManager.playCursor();
+                        this.nextActor();
+                        TouchInput.clear();
+                    }
+                }
+            };
+        }
+
+        // [Scene_Skill]
+        if (typeof Scene_Skill !== 'undefined' && Scene_Skill.prototype) {
+            var _Scene_Skill_createItemWindow = Scene_Skill.prototype.createItemWindow;
+            Scene_Skill.prototype.createItemWindow = function() {
+                if (_Scene_Skill_createItemWindow) _Scene_Skill_createItemWindow.call(this);
+                if (this._itemWindow) {
+                    this._itemWindow.setHandler('pagedown', this.nextActor.bind(this));
+                    this._itemWindow.setHandler('pageup',   this.previousActor.bind(this));
+                }
+            };
+
+            var _Scene_Skill_onActorChange = Scene_Skill.prototype.onActorChange;
+            Scene_Skill.prototype.onActorChange = function() {
+                var wasItemActive = this._itemWindow && this._itemWindow.active;
+                if (_Scene_Skill_onActorChange) _Scene_Skill_onActorChange.call(this);
+                if (wasItemActive && this._itemWindow) {
+                    if (this._skillTypeWindow) this._skillTypeWindow.deactivate();
+                    this._itemWindow.activate();
+                    this._itemWindow.select(0);
+                }
+            };
+
+            var _Scene_Skill_update = Scene_Skill.prototype.update;
+            Scene_Skill.prototype.update = function() {
+                if (_Scene_Skill_update) {
+                    _Scene_Skill_update.call(this);
+                } else if (Scene_ItemBase.prototype.update) {
+                    Scene_ItemBase.prototype.update.call(this);
+                }
+                if (TouchInput.isTriggered() && this._statusWindow && this.isActive()) {
+                    var x = Graphics.pageToCanvasX(TouchInput.x);
+                    var y = Graphics.pageToCanvasY(TouchInput.y);
+                    var sw = this._statusWindow;
+                    if (x >= sw.x && x < sw.x + sw.width && y >= sw.y && y < sw.y + sw.height) {
+                        SoundManager.playCursor();
+                        this.nextActor();
+                        TouchInput.clear();
+                    }
+                }
+            };
+        }
+
+        // [Scene_Status]
+        if (typeof Scene_Status !== 'undefined' && Scene_Status.prototype) {
+            var _Scene_Status_update = Scene_Status.prototype.update;
+            Scene_Status.prototype.update = function() {
+                if (_Scene_Status_update) {
+                    _Scene_Status_update.call(this);
+                } else if (Scene_MenuBase.prototype.update) {
+                    Scene_MenuBase.prototype.update.call(this);
+                }
+                if (TouchInput.isTriggered() && this._statusWindow && this.isActive()) {
+                    var x = Graphics.pageToCanvasX(TouchInput.x);
+                    if (x < Graphics.boxWidth / 2) {
+                        SoundManager.playCursor();
+                        this.previousActor();
+                    } else {
+                        SoundManager.playCursor();
+                        this.nextActor();
+                    }
+                    TouchInput.clear();
+                }
+            };
+        }
+
+        // [Window_EroStatus / H Status Plugin]
+        if (typeof Window_EroStatus !== 'undefined' && Window_EroStatus.prototype && Window_EroStatus.prototype.update) {
+            var _Window_EroStatus_update = Window_EroStatus.prototype.update;
+            Window_EroStatus.prototype.update = function() {
+                if (typeof CBR_eroStatusState !== 'undefined' && CBR_eroStatusState && CBR_eroStatusState.num && 1 < CBR_eroStatusState.num.length && this.isOpenAndActive()) {
+                    if (Input.isTriggered('pagedown')) {
+                        SoundManager.playCursor(2);
+                        CBR_eroStatusState.now = ((CBR_eroStatusState.now + 1) < CBR_eroStatusState.num.length) ? CBR_eroStatusState.now + 1 : 0;
+                        this._CBR_complete = false;
+                    } else if (Input.isTriggered('pageup')) {
+                        SoundManager.playCursor(2);
+                        CBR_eroStatusState.now = ((CBR_eroStatusState.now) < 1) ? CBR_eroStatusState.num.length - 1 : CBR_eroStatusState.now - 1;
+                        this._CBR_complete = false;
+                    }
+                }
+                return _Window_EroStatus_update.apply(this, arguments);
+            };
+        }
+    } catch (e) {
+        console.error("Menu character switch init error:", e);
     }
 
     // =========================================================================
     // 3. TƯƠNG TÁC CHẠM & CHUỘT CHO MENU TRANH TÙY BIẾN (CUSTOM PICTURE MENU)
     // =========================================================================
 
-    // Danh sách 8 nút trong Menu tranh tùy biến của game
     var customMenuButtons = [
         { id: 31, base: "menu_button_01_item",   sel: "menu_button_01_item_sel" },
         { id: 32, base: "menu_button_02_skill",  sel: "menu_button_02_skill_sel" },
@@ -235,153 +274,144 @@
     }
 
     function getCustomMenuButtonIndex(x, y) {
-        // Cột các nút menu nằm từ x = 0 đến x = 245
         if (x < 0 || x > 245) return 0;
-        // Từng nút theo trục Y (dựa trên bounding box thực tế của các ảnh nút)
-        if (y >= 105 && y < 168) return 1; // Item
-        if (y >= 168 && y < 230) return 2; // Skill
-        if (y >= 230 && y < 294) return 3; // Equips
-        if (y >= 294 && y < 356) return 4; // Status
-        if (y >= 356 && y < 420) return 5; // H Status
-        if (y >= 420 && y < 482) return 6; // Settings (Options)
-        if (y >= 482 && y < 546) return 7; // Save
-        if (y >= 546 && y <= 615) return 8; // Close / End
+        if (y >= 105 && y < 168) return 1;
+        if (y >= 168 && y < 230) return 2;
+        if (y >= 230 && y < 294) return 3;
+        if (y >= 294 && y < 356) return 4;
+        if (y >= 356 && y < 420) return 5;
+        if (y >= 420 && y < 482) return 6;
+        if (y >= 482 && y < 546) return 7;
+        if (y >= 546 && y <= 615) return 8;
         return 0;
     }
 
-    // Chặn nhân vật di chuyển trên bản đồ khi menu tranh đang mở
-    var _Scene_Map_isMapTouchOk = Scene_Map.prototype.isMapTouchOk;
-    Scene_Map.prototype.isMapTouchOk = function() {
-        if ($gameSwitches && $gameSwitches.value(82)) {
-            return false;
-        }
-        return _Scene_Map_isMapTouchOk.call(this);
-    };
-
-    var _Game_Player_canMove = Game_Player.prototype.canMove;
-    Game_Player.prototype.canMove = function() {
-        if ($gameSwitches && $gameSwitches.value(82)) {
-            return false;
-        }
-        return _Game_Player_canMove.call(this);
-    };
-
-    // Bắt tương tác chuột và cảm ứng cho menu tùy biến
-    var _Scene_Map_update = Scene_Map.prototype.update;
-    Scene_Map.prototype.update = function() {
-        _Scene_Map_update.call(this);
-        this.updateCustomMenuInteraction();
-    };
-
-    Scene_Map.prototype.updateCustomMenuInteraction = function() {
-        if (!$gameSwitches || !$gameSwitches.value(82)) {
-            // Khi menu đã đóng, khôi phục lại cần gạt Joystick và nút Q nếu trước đó đang bật
-            var joystick = document.querySelector(".vpad-joystick-center");
-            if (joystick && joystick.dataset.menuHidden === "true") {
-                if (isPadVisible) joystick.style.display = "block";
-                joystick.dataset.menuHidden = "false";
-            }
-            var btnQ = document.querySelector(".vpad-btn-q");
-            if (btnQ && btnQ.dataset.menuHidden === "true") {
-                if (isPadVisible) btnQ.style.display = "flex";
-                btnQ.dataset.menuHidden = "false";
-            }
-            return;
-        }
-
-        // Tạm ẩn cần gạt Joystick và nút Q khi mở menu để không che nút Save và Close ở góc trái dưới
-        var joystickEl = document.querySelector(".vpad-joystick-center");
-        if (joystickEl && joystickEl.style.display !== "none") {
-            joystickEl.style.display = "none";
-            joystickEl.dataset.menuHidden = "true";
-        }
-        var btnQEl = document.querySelector(".vpad-btn-q");
-        if (btnQEl && btnQEl.style.display !== "none") {
-            btnQEl.style.display = "none";
-            btnQEl.dataset.menuHidden = "true";
-        }
-
-        var tx = TouchInput.x;
-        var ty = TouchInput.y;
-
-        // 1. Hover chuột (trên PC): rê chuột tới đâu sáng nút đó
-        var hovered = getCustomMenuButtonIndex(tx, ty);
-        if (hovered > 0 && $gameVariables.value(21) !== hovered) {
-            $gameVariables.setValue(21, hovered);
-            updateCustomMenuPictures(hovered);
-            SoundManager.playCursor();
-        }
-
-        // 2. Chạm màn hình hoặc click chuột trái
-        if (TouchInput.isTriggered()) {
-            var clicked = getCustomMenuButtonIndex(tx, ty);
-            if (clicked > 0) {
-                $gameVariables.setValue(21, clicked);
-                updateCustomMenuPictures(clicked);
-                SoundManager.playOk();
-
-                switch (clicked) {
-                    case 1:
-                        SceneManager.push(Scene_Item);
-                        break;
-                    case 2:
-                        SceneManager.push(Scene_Skill);
-                        break;
-                    case 3:
-                        SceneManager.push(Scene_Equip);
-                        break;
-                    case 4:
-                        SceneManager.push(Scene_Status);
-                        break;
-                    case 5:
-                        SceneManager.push(Scene_EroStatus);
-                        break;
-                    case 6:
-                        SceneManager.push(Scene_Options);
-                        break;
-                    case 7:
-                        SceneManager.push(Scene_Save);
-                        $gameTemp.reserveCommonEvent(18);
-                        break;
-                    case 8:
-                        // Kích hoạt xác nhận Về màn hình chính / Hủy
-                        Input._currentState['ok'] = true;
-                        setTimeout(function() {
-                            Input._currentState['ok'] = false;
-                        }, 60);
-                        break;
+    try {
+        if (typeof Scene_Map !== 'undefined' && Scene_Map.prototype) {
+            var _Scene_Map_isMapTouchOk = Scene_Map.prototype.isMapTouchOk;
+            Scene_Map.prototype.isMapTouchOk = function() {
+                if ($gameSwitches && $gameSwitches.value(82)) {
+                    return false;
                 }
-                TouchInput.clear();
-            } else if (tx > 245 || ty < 100 || ty > 615) {
-                // Chạm vào bất kỳ vị trí nào bên ngoài cột nút menu -> Đóng menu
-                SoundManager.playCancel();
-                $gameTemp.reserveCommonEvent(11);
-                TouchInput.clear();
-            }
-        }
+                return _Scene_Map_isMapTouchOk ? _Scene_Map_isMapTouchOk.call(this) : true;
+            };
 
-        // 3. Phím HỦY / Quay lại (ESC, phím HỦY trên bàn phím ảo, hoặc chuột phải)
-        if (Input.isTriggered('cancel') || Input.isTriggered('escape') || TouchInput.isCancelled()) {
-            SoundManager.playCancel();
-            $gameTemp.reserveCommonEvent(11);
+            var _Game_Player_canMove = Game_Player.prototype.canMove;
+            Game_Player.prototype.canMove = function() {
+                if ($gameSwitches && $gameSwitches.value(82)) {
+                    return false;
+                }
+                return _Game_Player_canMove ? _Game_Player_canMove.call(this) : true;
+            };
+
+            var _Scene_Map_update = Scene_Map.prototype.update;
+            Scene_Map.prototype.update = function() {
+                if (_Scene_Map_update) _Scene_Map_update.call(this);
+                this.updateCustomMenuInteraction();
+            };
+
+            Scene_Map.prototype.updateCustomMenuInteraction = function() {
+                if (!$gameSwitches || !$gameSwitches.value(82)) {
+                    var joystick = document.querySelector(".vpad-joystick-center");
+                    if (joystick && joystick.dataset.menuHidden === "true") {
+                        if (isPadVisible) joystick.style.display = "block";
+                        joystick.dataset.menuHidden = "false";
+                    }
+                    var btnQ = document.querySelector(".vpad-btn-q");
+                    if (btnQ && btnQ.dataset.menuHidden === "true") {
+                        if (isPadVisible) btnQ.style.display = "flex";
+                        btnQ.dataset.menuHidden = "false";
+                    }
+                    return;
+                }
+
+                var joystickEl = document.querySelector(".vpad-joystick-center");
+                if (joystickEl && joystickEl.style.display !== "none") {
+                    joystickEl.style.display = "none";
+                    joystickEl.dataset.menuHidden = "true";
+                }
+                var btnQEl = document.querySelector(".vpad-btn-q");
+                if (btnQEl && btnQEl.style.display !== "none") {
+                    btnQEl.style.display = "none";
+                    btnQEl.dataset.menuHidden = "true";
+                }
+
+                var tx = TouchInput.x;
+                var ty = TouchInput.y;
+
+                var hovered = getCustomMenuButtonIndex(tx, ty);
+                if (hovered > 0 && $gameVariables.value(21) !== hovered) {
+                    $gameVariables.setValue(21, hovered);
+                    updateCustomMenuPictures(hovered);
+                    SoundManager.playCursor();
+                }
+
+                if (TouchInput.isTriggered()) {
+                    var clicked = getCustomMenuButtonIndex(tx, ty);
+                    if (clicked > 0) {
+                        $gameVariables.setValue(21, clicked);
+                        updateCustomMenuPictures(clicked);
+                        SoundManager.playOk();
+
+                        switch (clicked) {
+                            case 1:
+                                SceneManager.push(Scene_Item);
+                                break;
+                            case 2:
+                                SceneManager.push(Scene_Skill);
+                                break;
+                            case 3:
+                                SceneManager.push(Scene_Equip);
+                                break;
+                            case 4:
+                                SceneManager.push(Scene_Status);
+                                break;
+                            case 5:
+                                SceneManager.push(Scene_EroStatus);
+                                break;
+                            case 6:
+                                SceneManager.push(Scene_Options);
+                                break;
+                            case 7:
+                                SceneManager.push(Scene_Save);
+                                $gameTemp.reserveCommonEvent(18);
+                                break;
+                            case 8:
+                                Input._currentState['ok'] = true;
+                                setTimeout(function() {
+                                    Input._currentState['ok'] = false;
+                                }, 60);
+                                break;
+                        }
+                        TouchInput.clear();
+                    } else if (tx > 245 || ty < 100 || ty > 615) {
+                        SoundManager.playCancel();
+                        $gameTemp.reserveCommonEvent(11);
+                        TouchInput.clear();
+                    }
+                }
+
+                if (Input.isTriggered('cancel') || Input.isTriggered('escape') || TouchInput.isCancelled()) {
+                    SoundManager.playCancel();
+                    $gameTemp.reserveCommonEvent(11);
+                }
+            };
         }
-    };
+    } catch (e) {
+        console.error("Custom menu interaction error:", e);
+    }
 
     // =========================================================================
     // 4. BÀN PHÍM ẢO CẢM ỨNG: CẦN GẠT JOYSTICK + NÚT CHẠY TOGGLE
     // =========================================================================
 
-    // Kiểm tra xem thiết bị có phải nền tảng di động (Android / iOS) hay không
     function isMobilePlatform() {
-        // Bản chạy trên Windows / PC (NW.js / Game.exe hoặc trình duyệt PC) -> KHÔNG hiện phím ảo
         if (typeof Utils !== 'undefined' && Utils.isNwjs && Utils.isNwjs()) {
             return false;
         }
-        // Ứng dụng di động (Cordova APK / iOS IPA)
         if (window.cordova || window.Capacitor) {
             return true;
         }
-        // Trình duyệt di động trên điện thoại / máy tính bảng
         if (/Android|iPhone|iPad|iPod|Mobile|Silk|BlackBerry|Opera Mini/i.test(navigator.userAgent)) {
             return true;
         }
@@ -389,12 +419,9 @@
     }
 
     function createVirtualPad() {
-        // Chỉ tạo bàn phím ảo và cần gạt trên di động (Android & iOS).
-        // Trên Windows / PC sẽ ẩn hoàn toàn để giữ màn hình sạch sẽ nguyên bản.
         if (!isMobilePlatform()) return;
         if (document.getElementById("mv-virtual-pad-container")) return;
 
-        // Container toàn màn hình
         var container = document.createElement("div");
         container.id = "mv-virtual-pad-container";
         container.style.cssText = [
@@ -411,7 +438,6 @@
             "touch-action: none"
         ].join(";");
 
-        // CSS Styles
         var style = document.createElement("style");
         style.innerHTML = `
             .vpad-btn {
@@ -478,8 +504,6 @@
                 right: 25px;
                 right: max(25px, env(safe-area-inset-right, 25px));
             }
-
-            /* --- CẦN GẠT JOYSTICK --- */
             .vpad-joystick-center {
                 position: absolute;
                 bottom: 25px;
@@ -515,7 +539,6 @@
             .vpad-arrow-down { bottom: 6px; }
             .vpad-arrow-left { left: 8px; }
             .vpad-arrow-right { right: 8px; }
-
             .vpad-joystick-knob {
                 position: absolute;
                 top: calc(50% - 28px);
@@ -536,8 +559,6 @@
                 box-shadow: 0 0 16px rgba(255, 215, 0, 0.8), 0 4px 12px rgba(0, 0, 0, 0.6);
                 transition: none;
             }
-
-            /* --- CỤM ACTION NÚT BÊN PHẢI --- */
             .vpad-actions-center {
                 position: absolute;
                 bottom: 25px;
@@ -569,16 +590,13 @@
         `;
         document.head.appendChild(style);
 
-        // =====================================================================
-        // TẠO CẦN GẠT JOYSTICK
-        // =====================================================================
+        // Joystick
         var joystickContainer = document.createElement("div");
         joystickContainer.className = "vpad-joystick-center";
 
         var joystickBase = document.createElement("div");
         joystickBase.className = "vpad-joystick-base";
 
-        // Mũi tên định hướng trên vành joystick
         var arrowUp = document.createElement("div");
         arrowUp.className = "vpad-joystick-arrow vpad-arrow-up";
         arrowUp.innerText = "▲";
@@ -603,7 +621,6 @@
         joystickContainer.appendChild(joystickBase);
         container.appendChild(joystickContainer);
 
-        // Xử lý kéo thả Joystick
         var activeTouchId = null;
         var isMouseDown = false;
 
@@ -632,7 +649,6 @@
             } else {
                 var nx = dx / dist;
                 var ny = dy / dist;
-                // Góc 8 hướng (ngưỡng sin 22.5 độ = 0.38)
                 Input._currentState['right'] = (nx > 0.38);
                 Input._currentState['left']  = (nx < -0.38);
                 Input._currentState['down']  = (ny > 0.38);
@@ -654,7 +670,7 @@
         joystickContainer.addEventListener("touchstart", function(e) {
             e.preventDefault();
             e.stopPropagation();
-            if (activeTouchId === null) {
+            if (activeTouchId === null && e.changedTouches && e.changedTouches.length > 0) {
                 var touch = e.changedTouches[0];
                 activeTouchId = touch.identifier;
                 joystickKnob.classList.add("active");
@@ -663,7 +679,7 @@
         }, { passive: false });
 
         window.addEventListener("touchmove", function(e) {
-            if (activeTouchId !== null) {
+            if (activeTouchId !== null && e.changedTouches) {
                 for (var i = 0; i < e.changedTouches.length; i++) {
                     var touch = e.changedTouches[i];
                     if (touch.identifier === activeTouchId) {
@@ -676,7 +692,7 @@
         }, { passive: false });
 
         window.addEventListener("touchend", function(e) {
-            if (activeTouchId !== null) {
+            if (activeTouchId !== null && e.changedTouches) {
                 for (var i = 0; i < e.changedTouches.length; i++) {
                     if (e.changedTouches[i].identifier === activeTouchId) {
                         resetJoystick();
@@ -687,7 +703,7 @@
         }, { passive: false });
 
         window.addEventListener("touchcancel", function(e) {
-            if (activeTouchId !== null) {
+            if (activeTouchId !== null && e.changedTouches) {
                 for (var i = 0; i < e.changedTouches.length; i++) {
                     if (e.changedTouches[i].identifier === activeTouchId) {
                         resetJoystick();
@@ -697,7 +713,6 @@
             }
         }, { passive: false });
 
-        // Hỗ trợ chuột cho Joystick
         joystickContainer.addEventListener("mousedown", function(e) {
             e.preventDefault();
             isMouseDown = true;
@@ -717,18 +732,13 @@
             }
         });
 
-        // =====================================================================
-        // CỤM NÚT HÀNH ĐỘNG BÊN PHẢI
-        // =====================================================================
+        // Action buttons
         var actionContainer = document.createElement("div");
         actionContainer.className = "vpad-actions-center";
 
         var actionButtons = [
-            // Nút OK / Chọn (A)
             { key: "ok", label: "OK", right: 0, top: 55, size: 60, bg: "rgba(34, 139, 34, 0.75)" },
-            // Nút Hủy / Back (B)
             { key: "escape", label: "HỦY", right: 65, top: 115, size: 54, bg: "rgba(178, 34, 34, 0.75)" },
-            // Nút Menu
             { key: "menu", label: "MENU", right: 65, top: 0, size: 50, bg: "rgba(70, 130, 180, 0.75)" }
         ];
 
@@ -745,9 +755,7 @@
             actionContainer.appendChild(btn);
         });
 
-        // =====================================================================
-        // NÚT CHẠY DẠNG TOGGLE (CHUYỂN TRẠNG THÁI BẬT / TẮT)
-        // =====================================================================
+        // Dash Toggle
         var dashBtn = document.createElement("div");
         dashBtn.className = "vpad-btn vpad-dash-toggle";
         dashBtn.style.width = "52px";
@@ -790,21 +798,20 @@
 
         container.appendChild(actionContainer);
 
-        // Nút [◀ Q] (Đổi nhân vật trước / PageUp) - Nằm phía trên Joystick
+        // Q & E buttons
         var btnQ = document.createElement("div");
         btnQ.className = "vpad-shoulder-btn vpad-btn-q";
         btnQ.innerText = "◀ Q";
         bindKeyEvents(btnQ, "pageup");
         container.appendChild(btnQ);
 
-        // Nút [E ▶] (Đổi nhân vật sau / PageDown) - Nằm phía trên cụm Action
         var btnE = document.createElement("div");
         btnE.className = "vpad-shoulder-btn vpad-btn-e";
         btnE.innerText = "E ▶";
         bindKeyEvents(btnE, "pagedown");
         container.appendChild(btnE);
 
-        // Nút ẩn / hiện phím ảo
+        // Toggle visibility
         var toggleBtn = document.createElement("div");
         toggleBtn.className = "vpad-toggle";
         toggleBtn.innerText = "🎮 Phím Ảo: Bật";
@@ -822,7 +829,6 @@
         document.body.appendChild(container);
     }
 
-    // Gắn sự kiện cảm ứng và chuột vào hệ thống Input của game cho các nút thường
     function bindKeyEvents(element, keyName) {
         var isDown = false;
 
@@ -845,7 +851,6 @@
             if (!isDown) return;
             isDown = false;
             element.classList.remove("pressed");
-            // Giữ tối thiểu 60ms để Input.update() chắc chắn bắt được nút trong frame kế tiếp
             setTimeout(function() {
                 if (!isDown) {
                     Input._currentState[keyName] = false;
@@ -862,11 +867,20 @@
         element.addEventListener("mouseleave", release);
     }
 
-    // Tự động khởi tạo bàn phím ảo ngay khi scene đầu tiên sẵn sàng
-    var _Scene_Base_start = Scene_Base.prototype.start;
-    Scene_Base.prototype.start = function() {
-        _Scene_Base_start.call(this);
-        createVirtualPad();
-    };
+    try {
+        if (typeof Scene_Base !== 'undefined' && Scene_Base.prototype) {
+            var _Scene_Base_start = Scene_Base.prototype.start;
+            Scene_Base.prototype.start = function() {
+                if (_Scene_Base_start) _Scene_Base_start.call(this);
+                try {
+                    createVirtualPad();
+                } catch(err) {
+                    console.error("createVirtualPad error:", err);
+                }
+            };
+        }
+    } catch(e) {
+        console.error("Scene_Base.prototype.start hook error:", e);
+    }
 
 })();
