@@ -35,13 +35,20 @@ jobs:
       - name: Install Cordova
         run: npm install -g cordova
 
-      - name: Build Android APK
+      - name: Install Android Build Tools 33.0.2
         env:
           ANDROID_HOME: /usr/local/lib/android/sdk
           ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
         run: |
           yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses || true
-          
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;33.0.2" "platforms;android-33"
+
+      - name: Build Android APK
+        env:
+          ANDROID_HOME: /usr/local/lib/android/sdk
+          ANDROID_SDK_ROOT: /usr/local/lib/android/sdk
+          CORDOVA_ANDROID_GRADLE_DISTRIBUTION_URL: https://services.gradle.org/distributions/gradle-8.7-all.zip
+        run: |
           cordova create memelis_app com.hoangtuan.memelis "Memelis RPG"
           cd memelis_app
           
