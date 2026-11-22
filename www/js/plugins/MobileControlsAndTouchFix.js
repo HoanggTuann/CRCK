@@ -312,28 +312,7 @@
 
             Scene_Map.prototype.updateCustomMenuInteraction = function() {
                 if (!$gameSwitches || !$gameSwitches.value(82)) {
-                    var joystick = document.querySelector(".vpad-joystick-center");
-                    if (joystick && joystick.dataset.menuHidden === "true") {
-                        if (isPadVisible) joystick.style.display = "block";
-                        joystick.dataset.menuHidden = "false";
-                    }
-                    var btnQ = document.querySelector(".vpad-btn-q");
-                    if (btnQ && btnQ.dataset.menuHidden === "true") {
-                        if (isPadVisible) btnQ.style.display = "flex";
-                        btnQ.dataset.menuHidden = "false";
-                    }
                     return;
-                }
-
-                var joystickEl = document.querySelector(".vpad-joystick-center");
-                if (joystickEl && joystickEl.style.display !== "none") {
-                    joystickEl.style.display = "none";
-                    joystickEl.dataset.menuHidden = "true";
-                }
-                var btnQEl = document.querySelector(".vpad-btn-q");
-                if (btnQEl && btnQEl.style.display !== "none") {
-                    btnQEl.style.display = "none";
-                    btnQEl.dataset.menuHidden = "true";
                 }
 
                 var tx = TouchInput.x;
@@ -635,19 +614,44 @@
 
             joystickKnob.style.transform = "translate3d(" + dx + "px, " + dy + "px, 0)";
 
-            var deadZone = 12;
+            var deadZone = 10;
             if (dist < deadZone) {
                 Input._currentState['right'] = false;
                 Input._currentState['left']  = false;
                 Input._currentState['down']  = false;
                 Input._currentState['up']    = false;
+                if (arrowUp) arrowUp.style.color = "rgba(255, 255, 255, 0.4)";
+                if (arrowDown) arrowDown.style.color = "rgba(255, 255, 255, 0.4)";
+                if (arrowLeft) arrowLeft.style.color = "rgba(255, 255, 255, 0.4)";
+                if (arrowRight) arrowRight.style.color = "rgba(255, 255, 255, 0.4)";
             } else {
-                var nx = dx / dist;
-                var ny = dy / dist;
-                Input._currentState['right'] = (nx > 0.38);
-                Input._currentState['left']  = (nx < -0.38);
-                Input._currentState['down']  = (ny > 0.38);
-                Input._currentState['up']    = (ny < -0.38);
+                // Chia chính xác 4 hướng thành 4 phần riêng biệt (90 độ mỗi phần, tuyệt đối không kết hợp)
+                var absX = Math.abs(dx);
+                var absY = Math.abs(dy);
+
+                if (absX >= absY) {
+                    var isRight = dx > 0;
+                    Input._currentState['right'] = isRight;
+                    Input._currentState['left']  = !isRight;
+                    Input._currentState['up']    = false;
+                    Input._currentState['down']  = false;
+
+                    if (arrowRight) arrowRight.style.color = isRight ? "#ffd700" : "rgba(255, 255, 255, 0.4)";
+                    if (arrowLeft)  arrowLeft.style.color  = !isRight ? "#ffd700" : "rgba(255, 255, 255, 0.4)";
+                    if (arrowUp)    arrowUp.style.color    = "rgba(255, 255, 255, 0.4)";
+                    if (arrowDown)  arrowDown.style.color  = "rgba(255, 255, 255, 0.4)";
+                } else {
+                    var isDown = dy > 0;
+                    Input._currentState['down']  = isDown;
+                    Input._currentState['up']    = !isDown;
+                    Input._currentState['right'] = false;
+                    Input._currentState['left']  = false;
+
+                    if (arrowDown)  arrowDown.style.color  = isDown ? "#ffd700" : "rgba(255, 255, 255, 0.4)";
+                    if (arrowUp)    arrowUp.style.color    = !isDown ? "#ffd700" : "rgba(255, 255, 255, 0.4)";
+                    if (arrowRight) arrowRight.style.color = "rgba(255, 255, 255, 0.4)";
+                    if (arrowLeft)  arrowLeft.style.color  = "rgba(255, 255, 255, 0.4)";
+                }
             }
         }
 
@@ -660,6 +664,10 @@
             Input._currentState['left']  = false;
             Input._currentState['down']  = false;
             Input._currentState['up']    = false;
+            if (arrowUp) arrowUp.style.color = "rgba(255, 255, 255, 0.4)";
+            if (arrowDown) arrowDown.style.color = "rgba(255, 255, 255, 0.4)";
+            if (arrowLeft) arrowLeft.style.color = "rgba(255, 255, 255, 0.4)";
+            if (arrowRight) arrowRight.style.color = "rgba(255, 255, 255, 0.4)";
         }
 
         // Tương tác Joystick thuần túy trên container (không can thiệp vào window của iOS)
