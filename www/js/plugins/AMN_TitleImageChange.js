@@ -338,7 +338,7 @@
         if(paramGradeBoolean === 'true' && Savefile_Exists === true){
             var Global_Info = DataManager.loadGlobalInfo();
             var Save_ID = DataManager.latestSavefileId();
-            var Grade_Variable = Global_Info[Save_ID].gradeVariable
+            var Grade_Variable = (Global_Info && Global_Info[Save_ID] && Global_Info[Save_ID].gradeVariable) ? Global_Info[Save_ID].gradeVariable : 0;
             for (var i = 0, n = paramTitleGrades.length; i < n; i++) {
                 if (paramTitleImages[i] && Grade_Variable == paramTitleGrades[i]) {
                     $dataSystem.originalTitle1Name = $dataSystem.title1Name;
@@ -370,9 +370,8 @@
         //===========================================================================
         if(paramGradeBoolean === 'true' && Savefile_Exists === true){
             var Global_Info = DataManager.loadGlobalInfo();
-            console.log(Global_Info)
             var Save_ID = DataManager.latestSavefileId();
-            var Grade_Variable = Global_Info[Save_ID].gradeVariable
+            var Grade_Variable = (Global_Info && Global_Info[Save_ID] && Global_Info[Save_ID].gradeVariable) ? Global_Info[Save_ID].gradeVariable : 0;
             for (var i = 0, n = paramTitleGrades.length; i < n; i++) {
                 if (paramTitleBgms[i] && Grade_Variable == paramTitleGrades[i]) {
                     $dataSystem.titleBgm.originalName = $dataSystem.titleBgm.name;

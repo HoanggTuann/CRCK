@@ -1168,4 +1168,250 @@
         console.error("Scene_Base.prototype.start hook error:", e);
     }
 
+    // =========================================================================
+    // 5. HỆ THỐNG TỰ ĐỘNG LƯU (AUTO-SAVE) & BẢO VỆ CHỐNG GAME OVER / MẤT DỮ LIỆU
+    // =========================================================================
+
+    var _lastAutoSaveTime = 0;
+    var _autoSaveCooldown = 5000; // Tối thiểu 5 giây giữa các lần tự động lưu
+    var _autoSaveSlot = 1;        // Slot 1 được chỉ định làm slot Tự Động Lưu (Auto-Save)
+    var _autoSaveToastEl = null;
+    var _autoSaveToastTimer = null;
+
+    // Toast thông báo Tự động lưu thanh lịch, không cản trở thao tác chạm
+    function showAutoSaveNotification(text) {
+        try {
+            if (!_autoSaveToastEl) {
+                _autoSaveToastEl = document.createElement("div");
+                _autoSaveToastEl.style.position = "fixed";
+                _autoSaveToastEl.style.top = "10px";
+                _autoSaveToastEl.style.left = "50%";
+                _autoSaveToastEl.style.transform = "translateX(-50%)";
+                _autoSaveToastEl.style.backgroundColor = "rgba(18, 18, 32, 0.92)";
+                _autoSaveToastEl.style.color = "#ffd700";
+                _autoSaveToastEl.style.border = "1.5px solid rgba(255, 215, 0, 0.75)";
+                _autoSaveToastEl.style.borderRadius = "20px";
+                _autoSaveToastEl.style.padding = "6px 18px";
+                _autoSaveToastEl.style.fontSize = "13px";
+                _autoSaveToastEl.style.fontFamily = "sans-serif";
+                _autoSaveToastEl.style.fontWeight = "bold";
+                _autoSaveToastEl.style.boxShadow = "0 4px 16px rgba(0,0,0,0.6)";
+                _autoSaveToastEl.style.zIndex = "999999";
+                _autoSaveToastEl.style.pointerEvents = "none";
+                _autoSaveToastEl.style.transition = "opacity 0.3s ease, transform 0.3s ease";
+                _autoSaveToastEl.style.display = "none";
+                document.body.appendChild(_autoSaveToastEl);
+            }
+            _autoSaveToastEl.innerText = text || "💾 Đã tự động lưu";
+            _autoSaveToastEl.style.display = "block";
+            _autoSaveToastEl.style.opacity = "1";
+            _autoSaveToastEl.style.transform = "translateX(-50%) translateY(0)";
+            if (_autoSaveToastTimer) clearTimeout(_autoSaveToastTimer);
+            _autoSaveToastTimer = setTimeout(function() {
+                if (_autoSaveToastEl) {
+                    _autoSaveToastEl.style.opacity = "0";
+                    _autoSaveToastEl.style.transform = "translateX(-50%) translateY(-6px)";
+                    setTimeout(function() {
+                        if (_autoSaveToastEl) _autoSaveToastEl.style.display = "none";
+                    }, 300);
+                }
+            }, 1500);
+        } catch(e) {}
+    }
+
+    function performAutoSave(reason, force) {
+        try {
+            if (!window.$gameParty || !window.$gameMap || !window.$gameSystem) {
+                return false;
+            }
+            var now = Date.now();
+            if (!force && (now - _lastAutoSaveTime < _autoSaveCooldown)) {
+                return false;
+            }
+            if (typeof BattleManager !== 'undefined' && BattleManager.isBattleTest && BattleManager.isBattleTest()) {
+                return false;
+            }
+            // Không lưu khi đang trong chuỗi hội thoại / tin nhắn để tránh lỗi trạng thái
+            if (window.$gameMessage && $gameMessage.isBusy()) {
+                return false;
+            }
+            // Không lưu khi cả đội đang chết chưa kịp hồi sinh
+            if (window.$gameParty && $gameParty.isAllDead()) {
+                return false;
+            }
+
+            $gameParty.refresh();
+            $gameSystem.onBeforeSave();
+
+            var success = DataManager.saveGame(_autoSaveSlot);
+            if (success) {
+                _lastAutoSaveTime = now;
+                try {
+                    StorageManager.cleanBackup(_autoSaveSlot);
+                } catch(e) {}
+                console.log("[AutoSave] Đã tự động lưu thành công vào Slot " + _autoSaveSlot + " (" + (reason || "Tự động") + ")");
+                showAutoSaveNotification("💾 Đã tự động lưu");
+                return true;
+            }
+        } catch(err) {
+            console.warn("[AutoSave] Lỗi tự động lưu:", err);
+        }
+        return false;
+    }
+
+    // 1. Tự động lưu khi chuyển bản đồ / vào phòng / lên tầng mới
+    try {
+        if (typeof Scene_Map !== 'undefined' && Scene_Map.prototype) {
+            var _Scene_Map_onMapLoaded = Scene_Map.prototype.onMapLoaded;
+            Scene_Map.prototype.onMapLoaded = function() {
+                if (_Scene_Map_onMapLoaded) _Scene_Map_onMapLoaded.apply(this, arguments);
+                setTimeout(function() {
+                    performAutoSave("Vào bản đồ mới");
+                }, 500);
+            };
+
+            // Tự động lưu định kỳ mỗi 60s khi người chơi di chuyển thám hiểm
+            var _Scene_Map_updateAutoSave = Scene_Map.prototype.update;
+            Scene_Map.prototype.update = function() {
+                if (_Scene_Map_updateAutoSave) _Scene_Map_updateAutoSave.call(this);
+                if (Date.now() - _lastAutoSaveTime > 60000) {
+                    if (window.$gamePlayer && $gamePlayer.canMove && $gamePlayer.canMove() &&
+                        window.$gameMap && !$gameMap.isEventRunning() &&
+                        window.$gameMessage && !$gameMessage.isBusy()) {
+                        performAutoSave("Định kỳ thám hiểm");
+                    }
+                }
+            };
+        }
+    } catch(e) {
+        console.error("Scene_Map auto-save hook error:", e);
+    }
+
+    // 2. Tự động lưu sau trận đấu & Bảo vệ khi bị hạ gục (Common Event 16: Hồi sinh & Trở về nhà)
+    try {
+        if (typeof BattleManager !== 'undefined') {
+            var _BattleManager_updateBattleEnd = BattleManager.updateBattleEnd;
+            BattleManager.updateBattleEnd = function() {
+                if (!this.isBattleTest() && window.$gameParty && $gameParty.isAllDead()) {
+                    if (this._canLose) {
+                        $gameParty.reviveBattleMembers();
+                        SceneManager.pop();
+                    } else {
+                        // KÍCH HOẠT CƠ CHẾ CỦA GAME (Common Event 16: 全滅時帰還)
+                        // Fades out -> Switch 64 ON -> Hồi máu -> Về nhà an toàn, KHÔNG BỊ GAME OVER MẤT FILE!
+                        $gameScreen.startFadeOut(10);
+                        $gameSwitches.setValue(64, true);
+                        $gameParty.reviveBattleMembers();
+                        SceneManager.pop();
+                        setTimeout(function() {
+                            performAutoSave("Hồi sinh an toàn", true);
+                        }, 800);
+                    }
+                    this._phase = null;
+                    return;
+                }
+
+                if (_BattleManager_updateBattleEnd) {
+                    _BattleManager_updateBattleEnd.apply(this, arguments);
+                }
+
+                if (!this.isBattleTest() && window.$gameParty && !$gameParty.isAllDead()) {
+                    setTimeout(function() {
+                        performAutoSave("Sau chiến thắng");
+                    }, 400);
+                }
+            };
+        }
+    } catch(e) {
+        console.error("BattleManager auto-save & rescue hook error:", e);
+    }
+
+    // 3. Chặn Game Over trên bản đồ (bẫy/độc) -> Kích hoạt hồi sinh an toàn
+    try {
+        if (typeof Scene_Base !== 'undefined' && Scene_Base.prototype) {
+            Scene_Base.prototype.checkGameover = function() {
+                if (window.$gameParty && $gameParty.isAllDead()) {
+                    $gameScreen.startFadeOut(10);
+                    $gameSwitches.setValue(64, true);
+                    $gameParty.reviveBattleMembers();
+                }
+            };
+        }
+
+        if (typeof Scene_Gameover !== 'undefined' && Scene_Gameover.prototype) {
+            Scene_Gameover.prototype.gotoTitle = function() {
+                $gameSwitches.setValue(64, true);
+                $gameParty.reviveBattleMembers();
+                SceneManager.goto(Scene_Map);
+            };
+        }
+    } catch(e) {
+        console.error("Scene_Base checkGameover hook error:", e);
+    }
+
+    // 4. Hiển thị nhãn [Tự Động Lưu] màu vàng cho Slot 1 trong danh sách Lưu/Tải game
+    try {
+        if (typeof Window_SavefileList !== 'undefined' && Window_SavefileList.prototype) {
+            var _Window_SavefileList_drawFileId = Window_SavefileList.prototype.drawFileId;
+            Window_SavefileList.prototype.drawFileId = function(id, x, y) {
+                if (id === _autoSaveSlot) {
+                    this.changeTextColor('#ffcc00');
+                    var label = (typeof TextManager !== 'undefined' && TextManager.file ? TextManager.file : "Tệp") + ' ' + id + ' [Tự Động Lưu]';
+                    this.drawText(label, x, y, 250);
+                    this.resetTextColor();
+                } else {
+                    if (_Window_SavefileList_drawFileId) {
+                        _Window_SavefileList_drawFileId.call(this, id, x, y);
+                    } else {
+                        var normalLabel = (typeof TextManager !== 'undefined' && TextManager.file ? TextManager.file : "Tệp") + ' ' + id;
+                        this.drawText(normalLabel, x, y, 180);
+                    }
+                }
+            };
+        }
+    } catch(e) {
+        console.error("Window_SavefileList hook error:", e);
+    }
+
+    // 5. Bảo vệ WebGL Context Loss (chống sập màn hình đen khi điện thoại tải nặng)
+    try {
+        if (typeof Graphics !== 'undefined') {
+            var attachContextGuards = function(canvas) {
+                if (canvas && !canvas._contextGuarded) {
+                    canvas._contextGuarded = true;
+                    canvas.addEventListener('webglcontextlost', function(e) {
+                        if (e && e.preventDefault) e.preventDefault();
+                        console.warn("[WebGL] Context lost - prevented default termination");
+                    }, false);
+                    canvas.addEventListener('webglcontextrestored', function(e) {
+                        console.log("[WebGL] Context successfully restored");
+                    }, false);
+                }
+            };
+            if (Graphics._canvas) attachContextGuards(Graphics._canvas);
+            var _Graphics_createRenderer = Graphics._createRenderer;
+            Graphics._createRenderer = function() {
+                if (_Graphics_createRenderer) _Graphics_createRenderer.apply(this, arguments);
+                if (Graphics._canvas) attachContextGuards(Graphics._canvas);
+            };
+        }
+    } catch(e) {
+        console.error("WebGL context guard error:", e);
+    }
+
+    // 6. Tự động lưu khi người chơi tắt màn hình, chuyển app hoặc thoát game
+    try {
+        var onAppSuspended = function() {
+            performAutoSave("Chuyển app / Tắt máy", true);
+        };
+        document.addEventListener("visibilitychange", function() {
+            if (document.hidden) onAppSuspended();
+        });
+        window.addEventListener("pagehide", onAppSuspended);
+        window.addEventListener("beforeunload", onAppSuspended);
+        document.addEventListener("pause", onAppSuspended);
+    } catch(e) {
+        console.error("App lifecycle auto-save listener error:", e);
+    }
+
 })();
