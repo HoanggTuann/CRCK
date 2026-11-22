@@ -28,6 +28,7 @@
 
     var isPadVisible = true;
     var isDashActive = false; // Trạng thái chạy tự động (Toggle)
+    var isEditMode = false;   // Chế độ kéo thả chỉnh vị trí phím ảo
 
     try {
         // Gán phím vật lý E (69) và Q (81) vào hệ thống PageDown / PageUp của RPG Maker
@@ -543,23 +544,80 @@
                 height: 180px;
                 pointer-events: none;
             }
-            .vpad-toggle {
+            .vpad-top-bar {
                 position: absolute;
                 top: 10px;
                 top: max(10px, env(safe-area-inset-top, 10px));
                 right: 15px;
                 right: max(15px, env(safe-area-inset-right, 15px));
+                display: flex;
+                gap: 8px;
+                align-items: center;
                 pointer-events: auto;
-                background: rgba(0, 0, 0, 0.55);
-                color: #fff;
-                border: 1px solid rgba(255, 255, 255, 0.4);
+                z-index: 100000;
+            }
+            .vpad-top-btn {
+                background: rgba(0, 0, 0, 0.65);
+                color: #ffffff;
+                border: 1px solid rgba(255, 255, 255, 0.45);
                 border-radius: 16px;
-                padding: 6px 14px;
-                font-size: 13px;
+                padding: 6px 12px;
+                font-size: 12px;
                 font-weight: bold;
                 cursor: pointer;
-                z-index: 100000;
+                user-select: none;
+                -webkit-user-select: none;
                 box-shadow: 0 2px 6px rgba(0,0,0,0.4);
+                transition: background 0.15s, border-color 0.15s, transform 0.1s;
+                touch-action: manipulation;
+                white-space: nowrap;
+                -webkit-tap-highlight-color: transparent;
+            }
+            .vpad-top-btn:active {
+                transform: scale(0.95);
+            }
+            .vpad-btn-edit.edit-active {
+                background: rgba(34, 139, 34, 0.95) !important;
+                border-color: #ffd700 !important;
+                color: #ffffff !important;
+                box-shadow: 0 0 12px rgba(255, 215, 0, 0.75);
+                animation: vpad-pulse 1.5s infinite;
+            }
+            .vpad-btn-reset {
+                background: rgba(178, 34, 34, 0.8) !important;
+                border-color: rgba(255, 255, 255, 0.5) !important;
+            }
+            @keyframes vpad-pulse {
+                0% { box-shadow: 0 0 6px rgba(255, 215, 0, 0.4); }
+                50% { box-shadow: 0 0 16px rgba(255, 215, 0, 0.9); }
+                100% { box-shadow: 0 0 6px rgba(255, 215, 0, 0.4); }
+            }
+            .vpad-edit-toast {
+                position: absolute;
+                top: 50px;
+                top: max(50px, calc(env(safe-area-inset-top, 10px) + 40px));
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(15, 18, 30, 0.92);
+                color: #ffd700;
+                border: 1.5px solid rgba(255, 215, 0, 0.7);
+                border-radius: 12px;
+                padding: 7px 18px;
+                font-size: 13px;
+                font-weight: bold;
+                pointer-events: none;
+                z-index: 100001;
+                box-shadow: 0 4px 15px rgba(0,0,0,0.65);
+                display: none;
+                text-align: center;
+                white-space: nowrap;
+            }
+            .vpad-draggable-editing {
+                outline: 2px dashed #ffd700 !important;
+                outline-offset: 4px;
+                background-color: rgba(255, 215, 0, 0.12) !important;
+                border-radius: 18px;
+                cursor: move !important;
             }
         `;
         document.head.appendChild(style);
@@ -672,6 +730,7 @@
 
         // Tương tác Joystick thuần túy trên container (không can thiệp vào window của iOS)
         joystickContainer.addEventListener("touchstart", function(e) {
+            if (isEditMode) return;
             if (e && e.cancelable) e.preventDefault();
             if (e && e.stopPropagation) e.stopPropagation();
             if (activeTouchId === null && e.changedTouches && e.changedTouches.length > 0) {
@@ -711,6 +770,7 @@
         }, { passive: false });
 
         joystickContainer.addEventListener("mousedown", function(e) {
+            if (isEditMode) return;
             if (e && e.cancelable) e.preventDefault();
             isMouseDown = true;
             joystickKnob.classList.add("active");
@@ -785,6 +845,7 @@
         updateDashUI();
 
         function toggleDash(e) {
+            if (isEditMode) return;
             if (e && e.cancelable) {
                 e.preventDefault();
             }
@@ -816,20 +877,233 @@
         bindKeyEvents(btnE, "pagedown");
         container.appendChild(btnE);
 
-        // Toggle visibility
+        // =====================================================================
+        // TÍNH NĂNG TÙY CHỈNH VỊ TRÍ PHÍM ẢO (DRAG & DROP)
+        // =====================================================================
+        var draggedItem = null;
+        var dragOffset = { x: 0, y: 0 };
+        var toastTimer = null;
+        var STORAGE_KEY = 'memelis_vpad_custom_positions';
+
+        var toastEl = document.createElement("div");
+        toastEl.className = "vpad-edit-toast";
+        container.appendChild(toastEl);
+
+        function showToast(text, duration) {
+            toastEl.innerText = text;
+            toastEl.style.display = "block";
+            if (toastTimer) clearTimeout(toastTimer);
+            if (duration) {
+                toastTimer = setTimeout(function() {
+                    toastEl.style.display = "none";
+                }, duration);
+            }
+        }
+
+        function savePositions() {
+            var positions = {
+                joystick: { left: joystickContainer.style.left, top: joystickContainer.style.top },
+                actions:  { left: actionContainer.style.left,   top: actionContainer.style.top },
+                btnQ:     { left: btnQ.style.left,              top: btnQ.style.top },
+                btnE:     { left: btnE.style.left,              top: btnE.style.top }
+            };
+            try {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(positions));
+            } catch(e) {}
+        }
+
+        function loadPositions() {
+            try {
+                var raw = localStorage.getItem(STORAGE_KEY);
+                if (!raw) return;
+                var p = JSON.parse(raw);
+                if (p.joystick && p.joystick.left) {
+                    joystickContainer.style.left = p.joystick.left;
+                    joystickContainer.style.top = p.joystick.top;
+                    joystickContainer.style.bottom = "auto";
+                    joystickContainer.style.right = "auto";
+                }
+                if (p.actions && p.actions.left) {
+                    actionContainer.style.left = p.actions.left;
+                    actionContainer.style.top = p.actions.top;
+                    actionContainer.style.bottom = "auto";
+                    actionContainer.style.right = "auto";
+                }
+                if (p.btnQ && p.btnQ.left) {
+                    btnQ.style.left = p.btnQ.left;
+                    btnQ.style.top = p.btnQ.top;
+                    btnQ.style.bottom = "auto";
+                    btnQ.style.right = "auto";
+                }
+                if (p.btnE && p.btnE.left) {
+                    btnE.style.left = p.btnE.left;
+                    btnE.style.top = p.btnE.top;
+                    btnE.style.bottom = "auto";
+                    btnE.style.right = "auto";
+                }
+            } catch(e) {}
+        }
+
+        function resetPositions() {
+            try {
+                localStorage.removeItem(STORAGE_KEY);
+            } catch(e) {}
+            [joystickContainer, actionContainer, btnQ, btnE].forEach(function(el) {
+                el.style.left = "";
+                el.style.top = "";
+                el.style.right = "";
+                el.style.bottom = "";
+            });
+        }
+
+        function makeDraggable(element) {
+            function onDragStart(clientX, clientY, e) {
+                if (!isEditMode) return;
+                if (e && e.cancelable) e.preventDefault();
+                if (e && e.stopPropagation) e.stopPropagation();
+
+                draggedItem = element;
+                var rect = element.getBoundingClientRect();
+                dragOffset.x = clientX - rect.left;
+                dragOffset.y = clientY - rect.top;
+            }
+
+            element.addEventListener("touchstart", function(e) {
+                if (isEditMode && e.touches && e.touches.length > 0) {
+                    onDragStart(e.touches[0].clientX, e.touches[0].clientY, e);
+                }
+            }, { passive: false });
+
+            element.addEventListener("mousedown", function(e) {
+                if (isEditMode) {
+                    onDragStart(e.clientX, e.clientY, e);
+                }
+            });
+        }
+
+        function onDragMove(clientX, clientY, e) {
+            if (!isEditMode || !draggedItem) return;
+            if (e && e.cancelable) e.preventDefault();
+
+            var newLeft = clientX - dragOffset.x;
+            var newTop = clientY - dragOffset.y;
+
+            var w = draggedItem.offsetWidth || 60;
+            var h = draggedItem.offsetHeight || 60;
+            var maxW = window.innerWidth;
+            var maxH = window.innerHeight;
+
+            if (newLeft < 0) newLeft = 0;
+            if (newTop < 0) newTop = 0;
+            if (newLeft + w > maxW) newLeft = maxW - w;
+            if (newTop + h > maxH) newTop = maxH - h;
+
+            draggedItem.style.left = newLeft + "px";
+            draggedItem.style.top = newTop + "px";
+            draggedItem.style.right = "auto";
+            draggedItem.style.bottom = "auto";
+        }
+
+        function onDragEnd() {
+            if (!isEditMode || !draggedItem) return;
+            draggedItem = null;
+        }
+
+        window.addEventListener("touchmove", function(e) {
+            if (isEditMode && draggedItem && e.touches && e.touches.length > 0) {
+                onDragMove(e.touches[0].clientX, e.touches[0].clientY, e);
+            }
+        }, { passive: false });
+
+        window.addEventListener("touchend", onDragEnd, { passive: false });
+        window.addEventListener("touchcancel", onDragEnd, { passive: false });
+
+        window.addEventListener("mousemove", function(e) {
+            if (isEditMode && draggedItem) {
+                onDragMove(e.clientX, e.clientY, e);
+            }
+        });
+        window.addEventListener("mouseup", onDragEnd);
+
+        makeDraggable(joystickContainer);
+        makeDraggable(actionContainer);
+        makeDraggable(btnQ);
+        makeDraggable(btnE);
+
+        // Thanh điều khiển trên cùng (Nút chỉnh vị trí + Nút bật/tắt phím ảo)
+        var topBar = document.createElement("div");
+        topBar.className = "vpad-top-bar";
+
+        var resetBtn = document.createElement("div");
+        resetBtn.className = "vpad-top-btn vpad-btn-reset";
+        resetBtn.innerText = "🔄 Mặc định";
+        resetBtn.style.display = "none";
+
+        var editBtn = document.createElement("div");
+        editBtn.className = "vpad-top-btn vpad-btn-edit";
+        editBtn.innerText = "⚙️ Chỉnh vị trí";
+
         var toggleBtn = document.createElement("div");
-        toggleBtn.className = "vpad-toggle";
+        toggleBtn.className = "vpad-top-btn vpad-btn-toggle";
         toggleBtn.innerText = "🎮 Phím Ảo: Bật";
+
+        editBtn.onclick = function() {
+            isEditMode = !isEditMode;
+            if (isEditMode) {
+                editBtn.innerText = "💾 Lưu vị trí";
+                editBtn.classList.add("edit-active");
+                resetBtn.style.display = "inline-block";
+                actionContainer.style.pointerEvents = "auto";
+
+                [joystickContainer, actionContainer, btnQ, btnE].forEach(function(el) {
+                    el.classList.add("vpad-draggable-editing");
+                });
+
+                showToast("👉 Kéo thả các cụm phím đến vị trí mong muốn, rồi bấm [💾 Lưu vị trí]");
+                SoundManager.playCursor();
+            } else {
+                savePositions();
+                editBtn.innerText = "⚙️ Chỉnh vị trí";
+                editBtn.classList.remove("edit-active");
+                resetBtn.style.display = "none";
+                actionContainer.style.pointerEvents = "none";
+
+                [joystickContainer, actionContainer, btnQ, btnE].forEach(function(el) {
+                    el.classList.remove("vpad-draggable-editing");
+                });
+
+                showToast("✅ Đã lưu vị trí phím thành công!", 2000);
+                SoundManager.playOk();
+            }
+        };
+
+        resetBtn.onclick = function() {
+            resetPositions();
+            showToast("🔄 Đã khôi phục vị trí mặc định!", 2000);
+            SoundManager.playCancel();
+        };
+
         toggleBtn.onclick = function() {
+            if (isEditMode) {
+                editBtn.click();
+            }
             isPadVisible = !isPadVisible;
             joystickContainer.style.display = isPadVisible ? "block" : "none";
             actionContainer.style.display = isPadVisible ? "block" : "none";
             btnQ.style.display = isPadVisible ? "flex" : "none";
             btnE.style.display = isPadVisible ? "flex" : "none";
+            editBtn.style.display = isPadVisible ? "inline-block" : "none";
+            if (!isPadVisible) resetBtn.style.display = "none";
             toggleBtn.innerText = isPadVisible ? "🎮 Phím Ảo: Bật" : "🎮 Phím Ảo: Tắt";
             toggleBtn.style.opacity = isPadVisible ? "1" : "0.5";
         };
-        container.appendChild(toggleBtn);
+
+        topBar.appendChild(resetBtn);
+        topBar.appendChild(editBtn);
+        topBar.appendChild(toggleBtn);
+        container.appendChild(topBar);
+
+        loadPositions();
 
         document.body.appendChild(container);
     }
@@ -838,6 +1112,7 @@
         var isDown = false;
 
         function press(e) {
+            if (isEditMode) return;
             if (e && e.cancelable) {
                 e.preventDefault();
             }
@@ -851,6 +1126,7 @@
         }
 
         function release(e) {
+            if (isEditMode) return;
             if (e && e.cancelable) {
                 e.preventDefault();
             }
